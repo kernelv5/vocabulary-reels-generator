@@ -215,7 +215,11 @@ def create_preview(word: str = "Disband",
     
     # Draw placeholder for image
     img_elem = layout.image
-    img_center_x = layout.canvas_width // 2
+    # Use x_offset if available, otherwise center
+    if 'x_offset' in img_elem:
+        img_center_x = img_elem['x_offset'] + img_elem.get('max_width', 750) // 2
+    else:
+        img_center_x = layout.canvas_width // 2
     img_center_y = (img_elem['y_start'] + img_elem['y_end']) // 2
     placeholder_size = 180
     
@@ -237,13 +241,20 @@ def create_preview(word: str = "Disband",
     
     # Draw branding
     if layout.show_branding:
+        # Use x_offset if available, otherwise center
+        brand_elem = layout.branding
+        if 'x_offset' in brand_elem:
+            brand_center_x = brand_elem['x_offset'] + layout.safe_width // 2
+        else:
+            brand_center_x = layout.safe_center_x
+        
         draw_text_centered(
             draw, layout.channel_name,
             layout.branding['y_start'] + 5,
             brand_font,
             layout.get_color_rgb('branding'),
             layout.safe_width,
-            layout.safe_center_x
+            brand_center_x
         )
     
     # Save

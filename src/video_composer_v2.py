@@ -287,8 +287,11 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
             
             vocab_image = vocab_image.resize(new_size, Image.Resampling.LANCZOS)
             
-            # Center in image area
-            img_x = (layout.canvas_width - new_size[0]) // 2
+            # Position image using x_offset if available, otherwise center
+            if 'x_offset' in img_config:
+                img_x = img_config['x_offset'] + (max_width - new_size[0]) // 2
+            else:
+                img_x = (layout.canvas_width - new_size[0]) // 2
             img_y = img_config['y_start'] + (img_config['height'] - new_size[1]) // 2
             
             # Paste with alpha channel
@@ -301,6 +304,12 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
     # DRAW BRANDING
     # ===========================================
     if layout.show_branding:
+        # Calculate center_x based on x_offset if available
+        if 'x_offset' in brand_config:
+            brand_center_x = brand_config['x_offset'] + layout.safe_width // 2
+        else:
+            brand_center_x = layout.safe_center_x
+        
         draw_text_centered(
             draw=draw,
             text=layout.channel_name,
@@ -308,7 +317,7 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
             font=font_branding,
             color=tuple(brand_config['color']),
             max_width=layout.safe_width,
-            center_x=layout.safe_center_x
+            center_x=brand_center_x
         )
     
     # Save frame

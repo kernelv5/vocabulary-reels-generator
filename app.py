@@ -730,85 +730,520 @@ LAYOUT_EDITOR_HTML = '''
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Layout Editor</title>
+    <title>Layout Editor - Vocabulary Reels</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 24px; }
-        .tab-btn { padding: 12px 24px; border-radius: 8px; font-weight: 600; transition: all 0.3s; }
-        .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .preview-box { width: 360px; height: 640px; background: white; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border-radius: 24px; overflow: hidden; border: 8px solid #333; }
-        .guide-line { position: absolute; width: 100%; height: 2px; background: rgba(102, 126, 234, 0.5); z-index: 10; }
-        .toast { position: fixed; bottom: 30px; right: 30px; background: #10b981; color: white; padding: 16px 24px; border-radius: 12px; z-index: 1000; display: none; }
+        .preview-box { width: 270px; height: 480px; background: white; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border-radius: 16px; overflow: hidden; border: 6px solid #333; position: relative; }
+        .toast { position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; border-radius: 12px; z-index: 1000; display: none; color: white; }
+        .toast.success { background: #10b981; }
+        .toast.error { background: #ef4444; }
+        .input-group { display: flex; gap: 8px; align-items: center; }
+        .input-group input[type="number"] { width: 80px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; text-align: center; }
+        .input-group label { min-width: 30px; font-weight: 600; }
+        .section-title { font-size: 14px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
+        .element-card { background: #f9fafb; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+        .element-card h4 { font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-outline { background: white; border: 2px solid #d1d5db; color: #374151; }
+        .btn-outline:hover { border-color: #667eea; color: #667eea; }
+        .guide-line { position: absolute; left: 0; right: 0; height: 1px; background: rgba(239, 68, 68, 0.5); pointer-events: none; }
+        .guide-line::after { content: attr(data-label); position: absolute; right: 4px; top: -10px; font-size: 8px; color: #ef4444; background: white; padding: 0 2px; }
+        .safe-area { position: absolute; border: 1px dashed rgba(102, 126, 234, 0.5); background: rgba(102, 126, 234, 0.05); pointer-events: none; }
+        .element-preview { position: absolute; text-align: center; transition: all 0.15s ease; }
+        .specs-panel { font-size: 11px; color: #6b7280; margin-top: 16px; padding: 12px; background: #f3f4f6; border-radius: 8px; }
+        .specs-panel table { width: 100%; }
+        .specs-panel td { padding: 2px 4px; }
+        .specs-panel td:first-child { font-weight: 600; }
     </style>
 </head>
 <body class="bg-gray-50">
-    <header class="gradient-bg text-white py-6">
+    <header class="gradient-bg text-white py-4">
         <div class="container mx-auto px-6">
-            <div class="flex items-center gap-4">
-                <a href="/" class="hover:text-purple-200"><i class="fas fa-arrow-left text-xl"></i></a>
-                <h1 class="text-3xl font-bold">Layout Editor</h1>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="/" class="hover:text-purple-200"><i class="fas fa-arrow-left text-xl"></i></a>
+                    <h1 class="text-2xl font-bold"><i class="fas fa-sliders-h mr-2"></i>Layout Editor</h1>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="reloadConfig()" class="btn btn-outline" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3);color:white;">
+                        <i class="fas fa-sync-alt"></i> Reload
+                    </button>
+                    <button onclick="downloadConfig()" class="btn btn-outline" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3);color:white;">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <label class="btn btn-outline" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3);color:white;cursor:pointer;">
+                        <i class="fas fa-upload"></i> Import
+                        <input type="file" accept=".json" onchange="importConfig(event)" style="display:none;">
+                    </label>
+                </div>
             </div>
         </div>
     </header>
-    <main class="container mx-auto px-6 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2">
+    
+    <main class="container mx-auto px-6 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Controls Panel -->
+            <div class="lg:col-span-2 space-y-4">
+                <!-- Word Title -->
                 <div class="card">
-                    <h2 class="text-2xl font-bold mb-6">Controls</h2>
-                    <div class="space-y-6">
-                        <div>
-                            <label class="block mb-2">Word Y: <span id="word-y-val">175</span>px</label>
-                            <input type="range" id="word-y" min="50" max="400" value="175" class="w-full" oninput="update()">
+                    <div class="section-title"><i class="fas fa-heading text-purple-500"></i> Word Title</div>
+                    <div class="element-card">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <label>Y:</label>
+                                <input type="number" id="word-y" min="0" max="800" value="175" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>H:</label>
+                                <input type="number" id="word-h" min="20" max="200" value="55" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block mb-2">Definition Y: <span id="def-y-val">230</span>px</label>
-                            <input type="range" id="def-y" min="100" max="500" value="230" class="w-full" oninput="update()">
-                        </div>
-                        <button onclick="save()" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold">
-                            <i class="fas fa-check mr-2"></i>Save & Apply
-                        </button>
                     </div>
                 </div>
-            </div>
-            <div class="lg:col-span-1">
+                
+                <!-- Definition -->
                 <div class="card">
-                    <h2 class="text-xl font-bold mb-4">Preview</h2>
-                    <div id="preview" class="preview-box"></div>
+                    <div class="section-title"><i class="fas fa-align-left text-blue-500"></i> Definition</div>
+                    <div class="element-card">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="input-group">
+                                <label>Y:</label>
+                                <input type="number" id="def-y" min="0" max="800" value="230" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>H:</label>
+                                <input type="number" id="def-h" min="20" max="300" value="75" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Image -->
+                <div class="card">
+                    <div class="section-title"><i class="fas fa-image text-green-500"></i> Image</div>
+                    <div class="element-card">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="input-group">
+                                <label>X:</label>
+                                <input type="number" id="img-x" min="0" max="1080" value="165" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Y:</label>
+                                <input type="number" id="img-y" min="0" max="1500" value="305" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>H:</label>
+                                <input type="number" id="img-h" min="50" max="600" value="225" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-3">
+                            <div class="input-group">
+                                <label>Max W:</label>
+                                <input type="number" id="img-w" min="100" max="1000" value="750" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Branding -->
+                <div class="card">
+                    <div class="section-title"><i class="fas fa-at text-orange-500"></i> Branding</div>
+                    <div class="element-card">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="input-group">
+                                <label>X:</label>
+                                <input type="number" id="brand-x" min="0" max="1080" value="270" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Y:</label>
+                                <input type="number" id="brand-y" min="0" max="1800" value="540" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>H:</label>
+                                <input type="number" id="brand-h" min="10" max="100" value="30" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="block text-sm text-gray-600 mb-1">Channel Name:</label>
+                            <input type="text" id="channel-name" value="@WhiteEnglishVocabulary" class="w-full p-2 border rounded-lg" onchange="update()">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Safe Area -->
+                <div class="card">
+                    <div class="section-title"><i class="fas fa-border-style text-red-500"></i> Safe Area</div>
+                    <div class="element-card">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="input-group">
+                                <label>Left:</label>
+                                <input type="number" id="safe-left" min="0" max="500" value="270" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Right:</label>
+                                <input type="number" id="safe-right" min="500" max="1080" value="810" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Width:</label>
+                                <span id="safe-width" class="font-bold text-purple-600">540</span>
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex gap-4">
+                    <button onclick="saveAndApply()" class="btn btn-success flex-1">
+                        <i class="fas fa-check"></i> Save & Apply
+                    </button>
+                    <button onclick="resetToDefault()" class="btn btn-secondary">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Preview Panel -->
+            <div class="lg:col-span-1">
+                <div class="card sticky top-6">
+                    <div class="section-title"><i class="fas fa-eye text-indigo-500"></i> Live Preview</div>
+                    <div id="preview" class="preview-box">
+                        <!-- Preview content rendered by JS -->
+                    </div>
+                    <div class="specs-panel">
+                        <table>
+                            <tr><td>Canvas:</td><td>1080 × 1920 px</td></tr>
+                            <tr><td>Aspect:</td><td>9:16 (Vertical)</td></tr>
+                            <tr><td>Scale:</td><td>1:4 (preview)</td></tr>
+                        </table>
+                    </div>
+                    <button onclick="generatePreview()" class="btn btn-primary w-full mt-4">
+                        <i class="fas fa-image"></i> Generate Server Preview
+                    </button>
                 </div>
             </div>
         </div>
     </main>
+    
     <div id="toast" class="toast"><i class="fas fa-check-circle mr-2"></i><span id="toast-msg"></span></div>
+    
     <script>
         let config = null;
-        async function load() {
-            const res = await fetch('/api/layout/config');
-            config = await res.json();
-            document.getElementById('word-y').value = config.elements.word_title.y_start;
-            document.getElementById('def-y').value = config.elements.definition.y_start;
-            update();
-        }
-        function update() {
-            document.getElementById('word-y-val').textContent = document.getElementById('word-y').value;
-            document.getElementById('def-y-val').textContent = document.getElementById('def-y').value;
-            const wordY = parseInt(document.getElementById('word-y').value) / 3;
-            const defY = parseInt(document.getElementById('def-y').value) / 3;
-            document.getElementById('preview').innerHTML = `<div style="position:relative;width:360px;height:640px;background:white;"><div style="position:absolute;top:${wordY}px;width:100%;text-align:center;font-size:24px;font-weight:bold;">Word</div><div style="position:absolute;top:${defY}px;width:100%;text-align:center;font-size:12px;">Definition goes here</div></div>`;
-        }
-        async function save() {
-            config.elements.word_title.y_start = parseInt(document.getElementById('word-y').value);
-            config.elements.definition.y_start = parseInt(document.getElementById('def-y').value);
-            const res = await fetch('/api/layout/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(config)});
-            const result = await res.json();
-            if(result.success) {
-                document.getElementById('toast-msg').textContent = 'Saved!';
-                document.getElementById('toast').style.display = 'block';
-                setTimeout(() => document.getElementById('toast').style.display = 'none', 3000);
+        const SCALE = 4; // 1080/270 = 4, preview is 1/4 scale
+        const DEFAULT_CONFIG = {
+            elements: {
+                word_title: { y_start: 175, y_end: 230, height: 55 },
+                definition: { y_start: 230, y_end: 305, height: 75 },
+                image: { y_start: 305, y_end: 530, height: 225, max_width: 750, x_offset: 165 },
+                branding: { y_start: 540, y_end: 570, height: 30, x_offset: 270 }
+            },
+            safe_area: { left: 270, right: 810, width: 540 },
+            branding: { channel_name: "@WhiteEnglishVocabulary" }
+        };
+        
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/layout/config');
+                config = await res.json();
+                applyConfigToUI();
+                update();
+            } catch (e) {
+                showToast('Failed to load config: ' + e.message, 'error');
             }
         }
-        window.addEventListener('DOMContentLoaded', load);
+        
+        function applyConfigToUI() {
+            if (!config) return;
+            
+            // Word
+            document.getElementById('word-y').value = config.elements.word_title.y_start || 175;
+            document.getElementById('word-h').value = config.elements.word_title.height || 55;
+            
+            // Definition
+            document.getElementById('def-y').value = config.elements.definition.y_start || 230;
+            document.getElementById('def-h').value = config.elements.definition.height || 75;
+            
+            // Image
+            document.getElementById('img-x').value = config.elements.image.x_offset || 165;
+            document.getElementById('img-y').value = config.elements.image.y_start || 305;
+            document.getElementById('img-h').value = config.elements.image.height || 225;
+            document.getElementById('img-w').value = config.elements.image.max_width || 750;
+            
+            // Branding
+            document.getElementById('brand-x').value = config.elements.branding.x_offset || 270;
+            document.getElementById('brand-y').value = config.elements.branding.y_start || 540;
+            document.getElementById('brand-h').value = config.elements.branding.height || 30;
+            document.getElementById('channel-name').value = config.branding?.channel_name || "@WhiteEnglishVocabulary";
+            
+            // Safe Area
+            document.getElementById('safe-left').value = config.safe_area.left || 270;
+            document.getElementById('safe-right').value = config.safe_area.right || 810;
+        }
+        
+        function getUIValues() {
+            return {
+                word: {
+                    y: parseInt(document.getElementById('word-y').value),
+                    h: parseInt(document.getElementById('word-h').value)
+                },
+                def: {
+                    y: parseInt(document.getElementById('def-y').value),
+                    h: parseInt(document.getElementById('def-h').value)
+                },
+                img: {
+                    x: parseInt(document.getElementById('img-x').value),
+                    y: parseInt(document.getElementById('img-y').value),
+                    h: parseInt(document.getElementById('img-h').value),
+                    w: parseInt(document.getElementById('img-w').value)
+                },
+                brand: {
+                    x: parseInt(document.getElementById('brand-x').value),
+                    y: parseInt(document.getElementById('brand-y').value),
+                    h: parseInt(document.getElementById('brand-h').value)
+                },
+                safe: {
+                    left: parseInt(document.getElementById('safe-left').value),
+                    right: parseInt(document.getElementById('safe-right').value)
+                },
+                channelName: document.getElementById('channel-name').value
+            };
+        }
+        
+        function update() {
+            const v = getUIValues();
+            
+            // Update safe width display
+            const safeWidth = v.safe.right - v.safe.left;
+            document.getElementById('safe-width').textContent = safeWidth;
+            
+            // Scale values for preview (1/4 scale)
+            const s = (val) => val / SCALE;
+            
+            // Build preview HTML
+            const previewHTML = `
+                <!-- Safe Area -->
+                <div class="safe-area" style="left:${s(v.safe.left)}px;right:${s(1080-v.safe.right)}px;top:0;bottom:0;"></div>
+                
+                <!-- Guide Lines -->
+                <div class="guide-line" style="top:${s(v.word.y)}px;" data-label="${v.word.y}"></div>
+                <div class="guide-line" style="top:${s(v.word.y + v.word.h)}px;"></div>
+                <div class="guide-line" style="top:${s(v.def.y + v.def.h)}px;background:rgba(59,130,246,0.5);"></div>
+                <div class="guide-line" style="top:${s(v.img.y)}px;background:rgba(16,185,129,0.5);"></div>
+                <div class="guide-line" style="top:${s(v.img.y + v.img.h)}px;background:rgba(16,185,129,0.5);"></div>
+                <div class="guide-line" style="top:${s(v.brand.y)}px;background:rgba(249,115,22,0.5);"></div>
+                
+                <!-- Word -->
+                <div class="element-preview" style="top:${s(v.word.y)}px;left:${s(v.safe.left)}px;width:${s(safeWidth)}px;height:${s(v.word.h)}px;font-size:${s(72)}px;font-weight:bold;line-height:${s(v.word.h)}px;color:#232323;">
+                    Disband
+                </div>
+                
+                <!-- Definition -->
+                <div class="element-preview" style="top:${s(v.def.y)}px;left:${s(v.safe.left)}px;width:${s(safeWidth)}px;height:${s(v.def.h)}px;font-size:${s(32)}px;line-height:1.3;color:#3c3c3c;overflow:hidden;">
+                    To break up or stop working together as a group...
+                </div>
+                
+                <!-- Image Placeholder -->
+                <div class="element-preview" style="top:${s(v.img.y)}px;left:${s(v.img.x)}px;width:${s(v.img.w)}px;height:${s(v.img.h)}px;display:flex;align-items:center;justify-content:center;">
+                    <div style="width:${s(180)}px;height:${s(180)}px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#999;font-size:10px;">
+                        [IMAGE]
+                    </div>
+                </div>
+                
+                <!-- Branding -->
+                <div class="element-preview" style="top:${s(v.brand.y)}px;left:${s(v.brand.x)}px;width:${s(safeWidth)}px;height:${s(v.brand.h)}px;font-size:${s(28)}px;color:#646464;line-height:${s(v.brand.h)}px;">
+                    ${v.channelName}
+                </div>
+            `;
+            
+            document.getElementById('preview').innerHTML = previewHTML;
+        }
+        
+        function applyUIToConfig() {
+            if (!config) return;
+            
+            const v = getUIValues();
+            
+            // Word
+            config.elements.word_title.y_start = v.word.y;
+            config.elements.word_title.y_end = v.word.y + v.word.h;
+            config.elements.word_title.height = v.word.h;
+            
+            // Definition
+            config.elements.definition.y_start = v.def.y;
+            config.elements.definition.y_end = v.def.y + v.def.h;
+            config.elements.definition.height = v.def.h;
+            
+            // Image
+            config.elements.image.x_offset = v.img.x;
+            config.elements.image.y_start = v.img.y;
+            config.elements.image.y_end = v.img.y + v.img.h;
+            config.elements.image.height = v.img.h;
+            config.elements.image.max_width = v.img.w;
+            
+            // Branding
+            config.elements.branding.x_offset = v.brand.x;
+            config.elements.branding.y_start = v.brand.y;
+            config.elements.branding.y_end = v.brand.y + v.brand.h;
+            config.elements.branding.height = v.brand.h;
+            
+            // Safe Area
+            config.safe_area.left = v.safe.left;
+            config.safe_area.right = v.safe.right;
+            config.safe_area.width = v.safe.right - v.safe.left;
+            
+            // Branding text
+            config.branding = config.branding || {};
+            config.branding.channel_name = v.channelName;
+        }
+        
+        async function saveAndApply() {
+            applyUIToConfig();
+            
+            try {
+                // Save config
+                const saveRes = await fetch('/api/layout/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(config)
+                });
+                const saveResult = await saveRes.json();
+                
+                if (!saveResult.success) {
+                    throw new Error(saveResult.error || 'Save failed');
+                }
+                
+                // Reload config in backend to apply changes
+                const reloadRes = await fetch('/api/layout/config/reload', { method: 'POST' });
+                const reloadResult = await reloadRes.json();
+                
+                if (!reloadResult.success) {
+                    throw new Error(reloadResult.error || 'Reload failed');
+                }
+                
+                showToast('Configuration saved and applied!', 'success');
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+        
+        async function reloadConfig() {
+            try {
+                // First reload from file on backend
+                await fetch('/api/layout/config/reload', { method: 'POST' });
+                // Then reload in UI
+                await loadConfig();
+                showToast('Configuration reloaded from file', 'success');
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+        
+        function downloadConfig() {
+            applyUIToConfig();
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'layout_config.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Configuration downloaded', 'success');
+        }
+        
+        function importConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    config = JSON.parse(e.target.result);
+                    applyConfigToUI();
+                    update();
+                    showToast('Configuration imported. Click Save & Apply to apply.', 'success');
+                } catch (err) {
+                    showToast('Invalid JSON file: ' + err.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset file input
+        }
+        
+        function resetToDefault() {
+            if (!confirm('Reset all values to default?')) return;
+            
+            // Apply defaults
+            document.getElementById('word-y').value = 175;
+            document.getElementById('word-h').value = 55;
+            document.getElementById('def-y').value = 230;
+            document.getElementById('def-h').value = 75;
+            document.getElementById('img-x').value = 165;
+            document.getElementById('img-y').value = 305;
+            document.getElementById('img-h').value = 225;
+            document.getElementById('img-w').value = 750;
+            document.getElementById('brand-x').value = 270;
+            document.getElementById('brand-y').value = 540;
+            document.getElementById('brand-h').value = 30;
+            document.getElementById('safe-left').value = 270;
+            document.getElementById('safe-right').value = 810;
+            document.getElementById('channel-name').value = '@WhiteEnglishVocabulary';
+            
+            update();
+            showToast('Reset to defaults. Click Save & Apply to apply.', 'success');
+        }
+        
+        async function generatePreview() {
+            try {
+                const res = await fetch('/api/preview/layout', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ word: 'Disband', definition: 'To break up or stop working together as a group', show_guides: true })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    window.open(result.preview_url, '_blank');
+                    showToast('Preview generated!', 'success');
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (e) {
+                showToast('Error: ' + e.message, 'error');
+            }
+        }
+        
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            toast.className = 'toast ' + type;
+            toastMsg.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 4000);
+        }
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', loadConfig);
     </script>
 </body>
 </html>

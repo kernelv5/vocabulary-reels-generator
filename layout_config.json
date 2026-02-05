@@ -41,6 +41,7 @@
     },
     
     "image": {
+      "x_offset": 165,
       "y_start": 305,
       "y_end": 530,
       "height": 225,
@@ -51,6 +52,7 @@
     },
     
     "branding": {
+      "x_offset": 270,
       "y_start": 540,
       "y_end": 570,
       "height": 30,
