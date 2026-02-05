@@ -298,9 +298,14 @@ HTML_TEMPLATE = '''
                             <i class="fas fa-folder-open text-yellow-600"></i>
                             Output Files
                         </h2>
-                        <button onclick="loadOutputFiles()" class="text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="clearOutputFiles()" class="text-red-500 hover:text-red-700" title="Clear All Files">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            <button onclick="loadOutputFiles()" class="text-gray-500 hover:text-gray-700" title="Refresh">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
                     </div>
                     <div id="output-files" class="space-y-2 max-h-64 overflow-y-auto pr-2">
                         <div class="flex items-center justify-center py-8">
@@ -656,11 +661,81 @@ HTML_TEMPLATE = '''
             try {
                 const res = await fetch('/api/generate/batch', {method: 'POST'});
                 const data = await res.json();
-                alert(`Batch complete!\\n✓ Success: ${data.success_count}\\n✗ Failed: ${data.fail_count}`);
+                
+                // Show results with download links
+                let message = `Batch complete!\n✓ Success: ${data.success_count}\n✗ Failed: ${data.fail_count}`;
+                
+                if (data.generated_files && data.generated_files.length > 0) {
+                    showBatchDownloadModal(data.generated_files);
+                } else {
+                    alert(message);
+                }
+                
                 loadWords();
                 loadOutputFiles();
             } catch (e) {
                 alert('Batch generation failed: ' + e.message);
+            }
+        }
+        
+        // Show batch download modal
+        function showBatchDownloadModal(files) {
+            const modal = document.createElement('div');
+            modal.id = 'batch-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 max-h-96 overflow-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-green-600"><i class="fas fa-check-circle mr-2"></i>Batch Complete!</h3>
+                        <button onclick="document.getElementById('batch-modal').remove()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <p class="text-gray-600 mb-4">${files.length} video(s) generated successfully:</p>
+                    <div class="space-y-2">
+                        ${files.map(f => `
+                            <a href="/api/download/${f}" download 
+                               class="flex items-center gap-2 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition">
+                                <i class="fas fa-download text-blue-600"></i>
+                                <span class="text-sm truncate">${f}</span>
+                            </a>
+                        `).join('')}
+                    </div>
+                    <button onclick="downloadAllBatch([${files.map(f => "'" + f + "'").join(',')}])" 
+                            class="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-download mr-2"></i>Download All
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        // Download all batch files
+        async function downloadAllBatch(files) {
+            for (const file of files) {
+                const a = document.createElement('a');
+                a.href = `/api/download/${file}`;
+                a.download = file;
+                a.click();
+                await new Promise(r => setTimeout(r, 500)); // Small delay between downloads
+            }
+        }
+        
+        // Clear output files
+        async function clearOutputFiles() {
+            if (!confirm('Delete ALL output files? This cannot be undone!')) return;
+            
+            try {
+                const res = await fetch('/api/files/clear', {method: 'DELETE'});
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Deleted ${data.deleted_count} file(s)`);
+                    loadOutputFiles();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (e) {
+                alert('Failed to clear files: ' + e.message);
             }
         }
 
@@ -1498,11 +1573,19 @@ def api_generate_batch():
         else:
             fail_count += 1
     
+    # Extract successfully generated file names
+    generated_files = []
+    for r in results:
+        if r.get('success') and r.get('video_path'):
+            from pathlib import Path
+            generated_files.append(Path(r['video_path']).name)
+    
     return jsonify({
         "success_count": success_count,
         "fail_count": fail_count,
         "total": len(pending),
-        "results": results
+        "results": results,
+        "generated_files": generated_files
     })
 
 
@@ -1591,6 +1674,28 @@ def api_list_files():
                     "type": f.suffix
                 })
     return jsonify(sorted(files, key=lambda x: x['name'], reverse=True))
+
+
+@app.route('/api/files/clear', methods=['DELETE'])
+def api_clear_files():
+    """Delete all files in the output folder."""
+    deleted_count = 0
+    errors = []
+    
+    if config.OUTPUT_DIR.exists():
+        for f in config.OUTPUT_DIR.iterdir():
+            if f.is_file():
+                try:
+                    f.unlink()
+                    deleted_count += 1
+                except Exception as e:
+                    errors.append(f"{f.name}: {str(e)}")
+    
+    return jsonify({
+        "success": len(errors) == 0,
+        "deleted_count": deleted_count,
+        "errors": errors
+    })
 
 
 # ============================================

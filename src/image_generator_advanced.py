@@ -33,8 +33,19 @@ class AdvancedImageGenerator:
         self.client_id = str(uuid.uuid4())
         
         # Image generation defaults from layout config
-        self.default_width = layout.image_width
-        self.default_height = layout.image_height
+        # Check if we should use layout element size instead of fixed size
+        use_layout_size = layout.config.get('image_generation', {}).get('use_layout_size', False)
+        
+        if use_layout_size:
+            # Use the image element's display area dimensions
+            img_elem = layout.image
+            self.default_width = img_elem.get('max_width', 750)
+            self.default_height = img_elem.get('height', 225)
+        else:
+            # Use fixed dimensions from image_generation config
+            self.default_width = layout.image_width
+            self.default_height = layout.image_height
+        
         self.default_steps = layout.image_steps
         self.default_cfg = layout.image_cfg_scale
         self.default_seed = layout.image_seed
