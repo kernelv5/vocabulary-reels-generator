@@ -45,7 +45,7 @@ from src.csv_reader import (
     load_vocabulary, save_vocabulary, add_word, delete_word,
     get_all_words, get_word_by_index, clear_all_words
 )
-from src.generator import VideoGenerator
+from src.generator_v2 import VideoGeneratorV2
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -55,8 +55,8 @@ CORS(app)  # Enable CORS for n8n integration
 ALLOWED_EXTENSIONS = {'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max
 
-# Generator instance
-generator = VideoGenerator()
+# Generator instance - Using V2 that reads from layout_config.json
+generator = VideoGeneratorV2()
 
 
 def allowed_file(filename, extensions=None):
