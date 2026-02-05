@@ -1,0 +1,111 @@
+{
+  "comment": "Instagram Vocabulary Reels Template - @WhiteEnglishVocabulary",
+  "resolution": "custom",
+  "width": 1080,
+  "height": 1920,
+  "quality": "high",
+  "fps": 30,
+  
+  "variables": {
+    "word": "Disband",
+    "definition": "To break up or stop working together as a group, such as a team, band, or organization.",
+    "image_url": "https://your-server.com/images/disband.png",
+    "channel_name": "@WhiteEnglishVocabulary",
+    "voice_text": "Disband. To break up or stop working together as a group, such as a team, band, or organization."
+  },
+  
+  "scenes": [
+    {
+      "comment": "Main Vocabulary Scene",
+      "duration": 10,
+      "background-color": "#FFFFFF",
+      
+      "elements": [
+        {
+          "comment": "Word Title - Bold, positioned at Y=175",
+          "type": "text",
+          "text": "{{word}}",
+          "position": "custom",
+          "x": 270,
+          "y": 175,
+          "width": 540,
+          "height": 55,
+          "duration": 10,
+          "settings": {
+            "font-family": "Poppins",
+            "font-size": "72px",
+            "font-weight": "700",
+            "color": "#232323",
+            "text-align": "center",
+            "vertical-align": "middle",
+            "horizontal-position": "center"
+          }
+        },
+        
+        {
+          "comment": "Definition Text - positioned at Y=230",
+          "type": "text",
+          "text": "{{definition}}",
+          "position": "custom",
+          "x": 270,
+          "y": 230,
+          "width": 540,
+          "height": 75,
+          "duration": 10,
+          "settings": {
+            "font-family": "Poppins",
+            "font-size": "36px",
+            "font-weight": "400",
+            "color": "#3C3C3C",
+            "text-align": "center",
+            "vertical-align": "top",
+            "horizontal-position": "center",
+            "line-height": "1.4"
+          }
+        },
+        
+        {
+          "comment": "Illustration Image - positioned at Y=305, centered",
+          "type": "image",
+          "src": "{{image_url}}",
+          "position": "custom",
+          "x": 165,
+          "y": 305,
+          "width": 750,
+          "height": 225,
+          "duration": 10
+        },
+        
+        {
+          "comment": "Channel Branding - positioned at Y=540",
+          "type": "text",
+          "text": "{{channel_name}}",
+          "position": "custom",
+          "x": 270,
+          "y": 540,
+          "width": 540,
+          "height": 30,
+          "duration": 10,
+          "settings": {
+            "font-family": "Poppins",
+            "font-size": "28px",
+            "font-weight": "500",
+            "color": "#3C3C3C",
+            "text-align": "center",
+            "vertical-align": "middle",
+            "horizontal-position": "center"
+          }
+        },
+        
+        {
+          "comment": "AI Voice Narration",
+          "type": "voice",
+          "text": "{{voice_text}}",
+          "voice": "en-US-AriaNeural",
+          "speed": 0.9,
+          "start": 0.5
+        }
+      ]
+    }
+  ]
+}

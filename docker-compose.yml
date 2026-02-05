@@ -1,0 +1,66 @@
+# Docker Compose for Vocabulary Reels Generator
+# ==============================================
+# Style: Minimalist Educational Instagram Reels / YouTube Shorts
+# Run with: docker-compose up -d
+
+version: '3.8'
+
+services:
+  vocab-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vocab-reels-generator
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./output:/app/output
+      - ./uploads:/app/uploads
+      - ./vocabulary.csv:/app/vocabulary.csv
+    environment:
+      # ===========================================
+      # JSON2VIDEO API (Recommended for consistent design)
+      # Get your API key at: https://json2video.com/
+      # ===========================================
+      - JSON2VIDEO_API_KEY=${JSON2VIDEO_API_KEY:-}
+      - JSON2VIDEO_TEMPLATE_ID=${JSON2VIDEO_TEMPLATE_ID:-}
+      - JSON2VIDEO_ENABLED=${JSON2VIDEO_ENABLED:-false}
+      
+      # ===========================================
+      # ComfyUI - Image Generation
+      # ===========================================
+      - COMFYUI_URL=http://host.docker.internal:8188
+      
+      # ===========================================
+      # TTS Server - Chatterbox TTS
+      # ===========================================
+      - TTS_URL=http://host.docker.internal:8004/v1/audio/speech
+      - TTS_MODEL=tts-1
+      - TTS_VOICE=
+      - TTS_SPEED=1.0
+      
+      # ===========================================
+      # Branding
+      # ===========================================
+      - CHANNEL_NAME=@WhiteEnglishVocabulary
+      
+      # ===========================================
+      # Flask settings
+      # ===========================================
+      - FLASK_ENV=production
+      - API_HOST=0.0.0.0
+      - API_PORT=5000
+      
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  default:
+    name: vocab-generator-network

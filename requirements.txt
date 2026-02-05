@@ -1,0 +1,20 @@
+# Vocabulary Reels Generator - Requirements
+# ==========================================
+
+# Web Framework
+flask==3.0.0
+flask-cors==4.0.0
+gunicorn==21.2.0
+
+# Data Processing
+pandas==2.1.4
+
+# Image Processing
+Pillow==10.1.0
+rembg==2.0.57
+
+# HTTP Requests
+requests==2.31.0
+
+# File handling
+werkzeug==3.0.1

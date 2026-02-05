@@ -1,0 +1,103 @@
+{
+  "version": "1.0",
+  "description": "Layout configuration for vocabulary reels - all measurements in pixels",
+  
+  "canvas": {
+    "width": 1080,
+    "height": 1920,
+    "background_color": [255, 255, 255],
+    "description": "9:16 aspect ratio, pure white background"
+  },
+  
+  "safe_area": {
+    "left": 270,
+    "right": 810,
+    "width": 540,
+    "description": "Content should stay within this centered area"
+  },
+  
+  "elements": {
+    "word_title": {
+      "y_start": 175,
+      "y_end": 230,
+      "height": 55,
+      "font_size": 72,
+      "font_weight": "bold",
+      "color": [35, 35, 35],
+      "alignment": "center",
+      "description": "Main vocabulary word"
+    },
+    
+    "definition": {
+      "y_start": 230,
+      "y_end": 305,
+      "height": 75,
+      "font_size": 36,
+      "font_weight": "normal",
+      "color": [60, 60, 60],
+      "alignment": "center",
+      "line_spacing": 1.2,
+      "description": "Word definition text"
+    },
+    
+    "image": {
+      "y_start": 305,
+      "y_end": 530,
+      "height": 225,
+      "max_width": 750,
+      "alignment": "center",
+      "transparent_bg": true,
+      "description": "Illustration centered in this area"
+    },
+    
+    "branding": {
+      "y_start": 540,
+      "y_end": 570,
+      "height": 30,
+      "font_size": 28,
+      "font_weight": "normal",
+      "color": [100, 100, 100],
+      "alignment": "center",
+      "description": "Channel name/branding"
+    }
+  },
+  
+  "typography": {
+    "font_family": "Canva Sans",
+    "fallback_fonts": ["Inter", "Open Sans", "Arial"],
+    "description": "Primary font is Canva Sans, with fallbacks"
+  },
+  
+  "image_generation": {
+    "prompt_template": "Simple minimalist illustration showing the concept of \"{word}\": {definition}. Style: Clean simple line drawing, muted brown and beige earth tones, simple cartoon characters or objects, solid pure white background, no text no letters no words, centered composition, flat illustration style, warm colors, educational clipart aesthetic, isolated on white.",
+    
+    "negative_prompt": "text, words, letters, numbers, watermark, signature, complex background, gradient, pattern, dark background, colorful background, photorealistic, 3d render, busy, cluttered, neon, vibrant colors",
+    
+    "width": 1024,
+    "height": 1024,
+    "steps": 4,
+    "cfg_scale": 2.0,
+    "seed": -1,
+    "sampler": "euler_ancestral",
+    "scheduler": "normal",
+    
+    "background_removal": {
+      "enabled": true,
+      "method": "rembg",
+      "description": "Remove background to make transparent"
+    }
+  },
+  
+  "video": {
+    "fps": 30,
+    "duration_seconds": 10,
+    "format": "mp4",
+    "codec": "libx264",
+    "quality": "high"
+  },
+  
+  "branding": {
+    "channel_name": "@WhiteEnglishVocabulary",
+    "show_branding": true
+  }
+}
