@@ -277,11 +277,27 @@ HTML_TEMPLATE = '''
                             Vocabulary List
                             <span id="word-count" class="text-sm font-normal text-gray-500">(0 words)</span>
                         </h2>
-                        <button onclick="generateBatch()"
-                                class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition text-sm font-medium shadow">
-                            <i class="fas fa-play mr-1"></i>
-                            Generate All
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="clearVocabularyList()" class="text-red-500 hover:text-red-700" title="Clear All Words">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            <button onclick="generateBatch()"
+                                    class="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition text-sm font-medium shadow">
+                                <i class="fas fa-play mr-1"></i>
+                                Generate All
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Batch Progress -->
+                    <div id="batch-progress-container" class="hidden mb-4 p-4 bg-indigo-50 rounded-xl">
+                        <div class="flex justify-between items-center mb-2">
+                            <span id="batch-progress-text" class="text-sm font-medium text-indigo-700">Generating...</span>
+                            <span id="batch-progress-count" class="text-sm font-bold text-indigo-600">0/0</span>
+                        </div>
+                        <div class="w-full bg-indigo-200 rounded-full h-3 overflow-hidden">
+                            <div id="batch-progress-bar" class="bg-indigo-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
                     </div>
                     
                     <div id="word-list" class="space-y-2 max-h-80 overflow-y-auto pr-2">
@@ -654,27 +670,107 @@ HTML_TEMPLATE = '''
             }
         }
 
-        // Generate batch
+        // Generate batch with progress
         async function generateBatch() {
             if (!confirm('Generate videos for all pending words? This may take a while.')) return;
             
+            // Show progress container
+            const progressContainer = document.getElementById('batch-progress-container');
+            const progressBar = document.getElementById('batch-progress-bar');
+            const progressText = document.getElementById('batch-progress-text');
+            const progressCount = document.getElementById('batch-progress-count');
+            
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Starting batch generation...';
+            progressCount.textContent = '0/0';
+            
             try {
-                const res = await fetch('/api/generate/batch', {method: 'POST'});
-                const data = await res.json();
+                // First get the count of pending words
+                const wordsRes = await fetch('/api/words');
+                const allWords = await wordsRes.json();
+                const pendingWords = allWords.filter(w => w.status === 'pending');
+                const total = pendingWords.length;
                 
-                // Show results with download links
-                let message = `Batch complete!\n✓ Success: ${data.success_count}\n✗ Failed: ${data.fail_count}`;
-                
-                if (data.generated_files && data.generated_files.length > 0) {
-                    showBatchDownloadModal(data.generated_files);
-                } else {
-                    alert(message);
+                if (total === 0) {
+                    progressContainer.classList.add('hidden');
+                    alert('No pending words to generate.');
+                    return;
                 }
                 
-                loadWords();
-                loadOutputFiles();
+                progressCount.textContent = `0/${total}`;
+                progressText.textContent = 'Generating videos...';
+                
+                // Generate one by one with progress
+                let successCount = 0;
+                let failCount = 0;
+                const generatedFiles = [];
+                
+                for (let i = 0; i < pendingWords.length; i++) {
+                    const word = pendingWords[i];
+                    progressText.textContent = `Generating: ${word.word}`;
+                    progressCount.textContent = `${i}/${total}`;
+                    progressBar.style.width = `${(i / total) * 100}%`;
+                    
+                    try {
+                        const res = await fetch(`/api/generate/${word.index}`, {method: 'POST'});
+                        const result = await res.json();
+                        
+                        if (result.success) {
+                            successCount++;
+                            if (result.video_path) {
+                                const filename = result.video_path.split('/').pop().split('\\\\').pop();
+                                generatedFiles.push(filename);
+                            }
+                        } else {
+                            failCount++;
+                        }
+                    } catch (err) {
+                        failCount++;
+                    }
+                    
+                    progressCount.textContent = `${i + 1}/${total}`;
+                    progressBar.style.width = `${((i + 1) / total) * 100}%`;
+                }
+                
+                // Complete
+                progressText.textContent = 'Batch complete!';
+                progressBar.style.width = '100%';
+                
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                    
+                    if (generatedFiles.length > 0) {
+                        showBatchDownloadModal(generatedFiles);
+                    } else {
+                        alert(`Batch complete!\n✓ Success: ${successCount}\n✗ Failed: ${failCount}`);
+                    }
+                    
+                    loadWords();
+                    loadOutputFiles();
+                }, 1000);
+                
             } catch (e) {
+                progressContainer.classList.add('hidden');
                 alert('Batch generation failed: ' + e.message);
+            }
+        }
+        
+        // Clear vocabulary list
+        async function clearVocabularyList() {
+            if (!confirm('Delete ALL vocabulary words? This cannot be undone!')) return;
+            
+            try {
+                const res = await fetch('/api/words/clear', {method: 'DELETE'});
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Cleared ${data.deleted_count} word(s)`);
+                    loadWords();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (e) {
+                alert('Failed to clear words: ' + e.message);
             }
         }
         
@@ -1468,8 +1564,10 @@ def api_delete_word(index):
 @app.route('/api/words/clear', methods=['DELETE'])
 def api_clear_words():
     """Clear all words."""
+    words = get_all_words()
+    count = len(words)
     clear_all_words()
-    return jsonify({"success": True})
+    return jsonify({"success": True, "deleted_count": count})
 
 
 @app.route('/api/generate', methods=['POST'])
