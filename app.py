@@ -809,6 +809,18 @@ LAYOUT_EDITOR_HTML = '''
                                 <span class="text-gray-400 text-sm">px</span>
                             </div>
                         </div>
+                        <div class="grid grid-cols-2 gap-4 mt-3">
+                            <div class="input-group">
+                                <label>Left:</label>
+                                <input type="number" id="word-left" min="0" max="500" value="270" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Right:</label>
+                                <input type="number" id="word-right" min="0" max="500" value="270" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -828,6 +840,18 @@ LAYOUT_EDITOR_HTML = '''
                                 <span class="text-gray-400 text-sm">px</span>
                             </div>
                         </div>
+                        <div class="grid grid-cols-2 gap-4 mt-3">
+                            <div class="input-group">
+                                <label>Left:</label>
+                                <input type="number" id="def-left" min="0" max="500" value="270" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Right:</label>
+                                <input type="number" id="def-right" min="0" max="500" value="270" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -835,12 +859,7 @@ LAYOUT_EDITOR_HTML = '''
                 <div class="card">
                     <div class="section-title"><i class="fas fa-image text-green-500"></i> Image</div>
                     <div class="element-card">
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="input-group">
-                                <label>X:</label>
-                                <input type="number" id="img-x" min="0" max="1080" value="165" onchange="update()">
-                                <span class="text-gray-400 text-sm">px</span>
-                            </div>
+                        <div class="grid grid-cols-2 gap-4">
                             <div class="input-group">
                                 <label>Y:</label>
                                 <input type="number" id="img-y" min="0" max="1500" value="305" onchange="update()">
@@ -854,6 +873,18 @@ LAYOUT_EDITOR_HTML = '''
                         </div>
                         <div class="grid grid-cols-2 gap-4 mt-3">
                             <div class="input-group">
+                                <label>Left:</label>
+                                <input type="number" id="img-left" min="0" max="500" value="163" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Right:</label>
+                                <input type="number" id="img-right" min="0" max="500" value="167" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 mt-3">
+                            <div class="input-group">
                                 <label>Max W:</label>
                                 <input type="number" id="img-w" min="100" max="1000" value="750" onchange="update()">
                                 <span class="text-gray-400 text-sm">px</span>
@@ -866,12 +897,7 @@ LAYOUT_EDITOR_HTML = '''
                 <div class="card">
                     <div class="section-title"><i class="fas fa-at text-orange-500"></i> Branding</div>
                     <div class="element-card">
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="input-group">
-                                <label>X:</label>
-                                <input type="number" id="brand-x" min="0" max="1080" value="270" onchange="update()">
-                                <span class="text-gray-400 text-sm">px</span>
-                            </div>
+                        <div class="grid grid-cols-2 gap-4">
                             <div class="input-group">
                                 <label>Y:</label>
                                 <input type="number" id="brand-y" min="0" max="1800" value="540" onchange="update()">
@@ -883,6 +909,18 @@ LAYOUT_EDITOR_HTML = '''
                                 <span class="text-gray-400 text-sm">px</span>
                             </div>
                         </div>
+                        <div class="grid grid-cols-2 gap-4 mt-3">
+                            <div class="input-group">
+                                <label>Left:</label>
+                                <input type="number" id="brand-left" min="0" max="500" value="270" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Right:</label>
+                                <input type="number" id="brand-right" min="0" max="500" value="270" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
                         <div class="mt-3">
                             <label class="block text-sm text-gray-600 mb-1">Channel Name:</label>
                             <input type="text" id="channel-name" value="@WhiteEnglishVocabulary" class="w-full p-2 border rounded-lg" onchange="update()">
@@ -890,10 +928,11 @@ LAYOUT_EDITOR_HTML = '''
                     </div>
                 </div>
                 
-                <!-- Safe Area -->
+                <!-- Global Safe Area (Reference) -->
                 <div class="card">
-                    <div class="section-title"><i class="fas fa-border-style text-red-500"></i> Safe Area</div>
+                    <div class="section-title"><i class="fas fa-border-style text-red-500"></i> Global Safe Area (Reference)</div>
                     <div class="element-card">
+                        <p class="text-xs text-gray-500 mb-3">Legacy global safe area. Each component now has individual Left/Right margins above.</p>
                         <div class="grid grid-cols-3 gap-4">
                             <div class="input-group">
                                 <label>Left:</label>
@@ -954,10 +993,10 @@ LAYOUT_EDITOR_HTML = '''
         const SCALE = 4; // 1080/270 = 4, preview is 1/4 scale
         const DEFAULT_CONFIG = {
             elements: {
-                word_title: { y_start: 175, y_end: 230, height: 55 },
-                definition: { y_start: 230, y_end: 305, height: 75 },
-                image: { y_start: 305, y_end: 530, height: 225, max_width: 750, x_offset: 165 },
-                branding: { y_start: 540, y_end: 570, height: 30, x_offset: 270 }
+                word_title: { y_start: 175, y_end: 230, height: 55, left_margin: 270, right_margin: 270 },
+                definition: { y_start: 230, y_end: 305, height: 75, left_margin: 270, right_margin: 270 },
+                image: { y_start: 305, y_end: 530, height: 225, max_width: 750, left_margin: 163, right_margin: 167 },
+                branding: { y_start: 540, y_end: 570, height: 30, left_margin: 270, right_margin: 270 }
             },
             safe_area: { left: 270, right: 810, width: 540 },
             branding: { channel_name: "@WhiteEnglishVocabulary" }
@@ -980,21 +1019,27 @@ LAYOUT_EDITOR_HTML = '''
             // Word
             document.getElementById('word-y').value = config.elements.word_title.y_start || 175;
             document.getElementById('word-h').value = config.elements.word_title.height || 55;
+            document.getElementById('word-left').value = config.elements.word_title.left_margin || 270;
+            document.getElementById('word-right').value = config.elements.word_title.right_margin || 270;
             
             // Definition
             document.getElementById('def-y').value = config.elements.definition.y_start || 230;
             document.getElementById('def-h').value = config.elements.definition.height || 75;
+            document.getElementById('def-left').value = config.elements.definition.left_margin || 270;
+            document.getElementById('def-right').value = config.elements.definition.right_margin || 270;
             
             // Image
-            document.getElementById('img-x').value = config.elements.image.x_offset || 165;
             document.getElementById('img-y').value = config.elements.image.y_start || 305;
             document.getElementById('img-h').value = config.elements.image.height || 225;
             document.getElementById('img-w').value = config.elements.image.max_width || 750;
+            document.getElementById('img-left').value = config.elements.image.left_margin || 163;
+            document.getElementById('img-right').value = config.elements.image.right_margin || 167;
             
             // Branding
-            document.getElementById('brand-x').value = config.elements.branding.x_offset || 270;
             document.getElementById('brand-y').value = config.elements.branding.y_start || 540;
             document.getElementById('brand-h').value = config.elements.branding.height || 30;
+            document.getElementById('brand-left').value = config.elements.branding.left_margin || 270;
+            document.getElementById('brand-right').value = config.elements.branding.right_margin || 270;
             document.getElementById('channel-name').value = config.branding?.channel_name || "@WhiteEnglishVocabulary";
             
             // Safe Area
@@ -1006,22 +1051,28 @@ LAYOUT_EDITOR_HTML = '''
             return {
                 word: {
                     y: parseInt(document.getElementById('word-y').value),
-                    h: parseInt(document.getElementById('word-h').value)
+                    h: parseInt(document.getElementById('word-h').value),
+                    left: parseInt(document.getElementById('word-left').value),
+                    right: parseInt(document.getElementById('word-right').value)
                 },
                 def: {
                     y: parseInt(document.getElementById('def-y').value),
-                    h: parseInt(document.getElementById('def-h').value)
+                    h: parseInt(document.getElementById('def-h').value),
+                    left: parseInt(document.getElementById('def-left').value),
+                    right: parseInt(document.getElementById('def-right').value)
                 },
                 img: {
-                    x: parseInt(document.getElementById('img-x').value),
                     y: parseInt(document.getElementById('img-y').value),
                     h: parseInt(document.getElementById('img-h').value),
-                    w: parseInt(document.getElementById('img-w').value)
+                    w: parseInt(document.getElementById('img-w').value),
+                    left: parseInt(document.getElementById('img-left').value),
+                    right: parseInt(document.getElementById('img-right').value)
                 },
                 brand: {
-                    x: parseInt(document.getElementById('brand-x').value),
                     y: parseInt(document.getElementById('brand-y').value),
-                    h: parseInt(document.getElementById('brand-h').value)
+                    h: parseInt(document.getElementById('brand-h').value),
+                    left: parseInt(document.getElementById('brand-left').value),
+                    right: parseInt(document.getElementById('brand-right').value)
                 },
                 safe: {
                     left: parseInt(document.getElementById('safe-left').value),
@@ -1041,9 +1092,21 @@ LAYOUT_EDITOR_HTML = '''
             // Scale values for preview (1/4 scale)
             const s = (val) => val / SCALE;
             
+            // Calculate individual element widths based on their margins
+            const wordWidth = 1080 - v.word.left - v.word.right;
+            const defWidth = 1080 - v.def.left - v.def.right;
+            const imgWidth = 1080 - v.img.left - v.img.right;
+            const brandWidth = 1080 - v.brand.left - v.brand.right;
+            
+            // Calculate center X for each element
+            const wordCenterX = v.word.left + wordWidth / 2;
+            const defCenterX = v.def.left + defWidth / 2;
+            const imgCenterX = v.img.left + imgWidth / 2;
+            const brandCenterX = v.brand.left + brandWidth / 2;
+            
             // Build preview HTML
             const previewHTML = `
-                <!-- Safe Area -->
+                <!-- Safe Area (Reference) -->
                 <div class="safe-area" style="left:${s(v.safe.left)}px;right:${s(1080-v.safe.right)}px;top:0;bottom:0;"></div>
                 
                 <!-- Guide Lines -->
@@ -1055,24 +1118,24 @@ LAYOUT_EDITOR_HTML = '''
                 <div class="guide-line" style="top:${s(v.brand.y)}px;background:rgba(249,115,22,0.5);"></div>
                 
                 <!-- Word -->
-                <div class="element-preview" style="top:${s(v.word.y)}px;left:${s(v.safe.left)}px;width:${s(safeWidth)}px;height:${s(v.word.h)}px;font-size:${s(72)}px;font-weight:bold;line-height:${s(v.word.h)}px;color:#232323;">
+                <div class="element-preview" style="top:${s(v.word.y)}px;left:${s(v.word.left)}px;width:${s(wordWidth)}px;height:${s(v.word.h)}px;font-size:${s(72)}px;font-weight:bold;line-height:${s(v.word.h)}px;color:#232323;">
                     Disband
                 </div>
                 
                 <!-- Definition -->
-                <div class="element-preview" style="top:${s(v.def.y)}px;left:${s(v.safe.left)}px;width:${s(safeWidth)}px;height:${s(v.def.h)}px;font-size:${s(32)}px;line-height:1.3;color:#3c3c3c;overflow:hidden;">
+                <div class="element-preview" style="top:${s(v.def.y)}px;left:${s(v.def.left)}px;width:${s(defWidth)}px;height:${s(v.def.h)}px;font-size:${s(32)}px;line-height:1.3;color:#3c3c3c;overflow:hidden;">
                     To break up or stop working together as a group...
                 </div>
                 
                 <!-- Image Placeholder -->
-                <div class="element-preview" style="top:${s(v.img.y)}px;left:${s(v.img.x)}px;width:${s(v.img.w)}px;height:${s(v.img.h)}px;display:flex;align-items:center;justify-content:center;">
+                <div class="element-preview" style="top:${s(v.img.y)}px;left:${s(v.img.left)}px;width:${s(imgWidth)}px;height:${s(v.img.h)}px;display:flex;align-items:center;justify-content:center;">
                     <div style="width:${s(180)}px;height:${s(180)}px;border:2px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#999;font-size:10px;">
                         [IMAGE]
                     </div>
                 </div>
                 
                 <!-- Branding -->
-                <div class="element-preview" style="top:${s(v.brand.y)}px;left:${s(v.brand.x)}px;width:${s(safeWidth)}px;height:${s(v.brand.h)}px;font-size:${s(28)}px;color:#646464;line-height:${s(v.brand.h)}px;">
+                <div class="element-preview" style="top:${s(v.brand.y)}px;left:${s(v.brand.left)}px;width:${s(brandWidth)}px;height:${s(v.brand.h)}px;font-size:${s(28)}px;color:#646464;line-height:${s(v.brand.h)}px;">
                     ${v.channelName}
                 </div>
             `;
@@ -1089,24 +1152,34 @@ LAYOUT_EDITOR_HTML = '''
             config.elements.word_title.y_start = v.word.y;
             config.elements.word_title.y_end = v.word.y + v.word.h;
             config.elements.word_title.height = v.word.h;
+            config.elements.word_title.left_margin = v.word.left;
+            config.elements.word_title.right_margin = v.word.right;
             
             // Definition
             config.elements.definition.y_start = v.def.y;
             config.elements.definition.y_end = v.def.y + v.def.h;
             config.elements.definition.height = v.def.h;
+            config.elements.definition.left_margin = v.def.left;
+            config.elements.definition.right_margin = v.def.right;
             
             // Image
-            config.elements.image.x_offset = v.img.x;
             config.elements.image.y_start = v.img.y;
             config.elements.image.y_end = v.img.y + v.img.h;
             config.elements.image.height = v.img.h;
             config.elements.image.max_width = v.img.w;
+            config.elements.image.left_margin = v.img.left;
+            config.elements.image.right_margin = v.img.right;
+            // Keep x_offset in sync with left_margin for backward compatibility
+            config.elements.image.x_offset = v.img.left;
             
             // Branding
-            config.elements.branding.x_offset = v.brand.x;
             config.elements.branding.y_start = v.brand.y;
             config.elements.branding.y_end = v.brand.y + v.brand.h;
             config.elements.branding.height = v.brand.h;
+            config.elements.branding.left_margin = v.brand.left;
+            config.elements.branding.right_margin = v.brand.right;
+            // Keep x_offset in sync with left_margin for backward compatibility
+            config.elements.branding.x_offset = v.brand.left;
             
             // Safe Area
             config.safe_area.left = v.safe.left;
@@ -1197,15 +1270,21 @@ LAYOUT_EDITOR_HTML = '''
             // Apply defaults
             document.getElementById('word-y').value = 175;
             document.getElementById('word-h').value = 55;
+            document.getElementById('word-left').value = 270;
+            document.getElementById('word-right').value = 270;
             document.getElementById('def-y').value = 230;
             document.getElementById('def-h').value = 75;
-            document.getElementById('img-x').value = 165;
+            document.getElementById('def-left').value = 270;
+            document.getElementById('def-right').value = 270;
             document.getElementById('img-y').value = 305;
             document.getElementById('img-h').value = 225;
             document.getElementById('img-w').value = 750;
-            document.getElementById('brand-x').value = 270;
+            document.getElementById('img-left').value = 163;
+            document.getElementById('img-right').value = 167;
             document.getElementById('brand-y').value = 540;
             document.getElementById('brand-h').value = 30;
+            document.getElementById('brand-left').value = 270;
+            document.getElementById('brand-right').value = 270;
             document.getElementById('safe-left').value = 270;
             document.getElementById('safe-right').value = 810;
             document.getElementById('channel-name').value = '@WhiteEnglishVocabulary';

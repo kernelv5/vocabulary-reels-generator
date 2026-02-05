@@ -26,6 +26,8 @@
       "font_size": 28,
       "font_weight": "normal",
       "height": 30,
+      "left_margin": 270,
+      "right_margin": 270,
       "x_offset": 270,
       "y_end": 570,
       "y_start": 540
@@ -41,7 +43,9 @@
       "font_size": 36,
       "font_weight": "normal",
       "height": 75,
+      "left_margin": 270,
       "line_spacing": 1.2,
+      "right_margin": 270,
       "y_end": 331,
       "y_start": 256
     },
@@ -49,7 +53,9 @@
       "alignment": "center",
       "description": "Illustration centered in this area",
       "height": 225,
+      "left_margin": 163,
       "max_width": 750,
+      "right_margin": 167,
       "transparent_bg": true,
       "x_offset": 163,
       "y_end": 836,
@@ -66,6 +72,8 @@
       "font_size": 72,
       "font_weight": "bold",
       "height": 55,
+      "left_margin": 270,
+      "right_margin": 270,
       "y_end": 221,
       "y_start": 166
     }

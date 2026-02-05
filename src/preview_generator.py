@@ -193,33 +193,44 @@ def create_preview(word: str = "Disband",
         layout.fallback_fonts
     )
     
-    # Draw word title
+    # Draw word title - use individual margins if available
+    word_elem = layout.word_title
+    word_left = word_elem.get('left_margin', layout.safe_left)
+    word_right = word_elem.get('right_margin', layout.canvas_width - layout.safe_right)
+    word_width = layout.canvas_width - word_left - word_right
+    word_center_x = word_left + (word_width // 2)
+    
     draw_text_centered(
         draw, word,
         layout.word_title['y_start'] + 10,
         word_font,
         layout.get_color_rgb('word_title'),
-        layout.safe_width,
-        layout.safe_center_x
+        word_width,
+        word_center_x
     )
     
-    # Draw definition
+    # Draw definition - use individual margins if available
+    def_elem = layout.definition
+    def_left = def_elem.get('left_margin', layout.safe_left)
+    def_right = def_elem.get('right_margin', layout.canvas_width - layout.safe_right)
+    def_width = layout.canvas_width - def_left - def_right
+    def_center_x = def_left + (def_width // 2)
+    
     draw_text_centered(
         draw, definition,
         layout.definition['y_start'] + 10,
         def_font,
         layout.get_color_rgb('definition'),
-        layout.safe_width - 40,  # Slight padding
-        layout.safe_center_x
+        def_width - 40,  # Slight padding
+        def_center_x
     )
     
-    # Draw placeholder for image
+    # Draw placeholder for image - use individual margins if available
     img_elem = layout.image
-    # Use x_offset if available, otherwise center
-    if 'x_offset' in img_elem:
-        img_center_x = img_elem['x_offset'] + img_elem.get('max_width', 750) // 2
-    else:
-        img_center_x = layout.canvas_width // 2
+    img_left = img_elem.get('left_margin', img_elem.get('x_offset', layout.safe_left))
+    img_right = img_elem.get('right_margin', layout.canvas_width - layout.safe_right)
+    img_area_width = layout.canvas_width - img_left - img_right
+    img_center_x = img_left + (img_area_width // 2)
     img_center_y = (img_elem['y_start'] + img_elem['y_end']) // 2
     placeholder_size = 180
     
@@ -239,21 +250,20 @@ def create_preview(word: str = "Disband",
         fill=(150, 140, 130)
     )
     
-    # Draw branding
+    # Draw branding - use individual margins if available
     if layout.show_branding:
-        # Use x_offset if available, otherwise center
         brand_elem = layout.branding
-        if 'x_offset' in brand_elem:
-            brand_center_x = brand_elem['x_offset'] + layout.safe_width // 2
-        else:
-            brand_center_x = layout.safe_center_x
+        brand_left = brand_elem.get('left_margin', brand_elem.get('x_offset', layout.safe_left))
+        brand_right = brand_elem.get('right_margin', layout.canvas_width - layout.safe_right)
+        brand_width = layout.canvas_width - brand_left - brand_right
+        brand_center_x = brand_left + (brand_width // 2)
         
         draw_text_centered(
             draw, layout.channel_name,
             layout.branding['y_start'] + 5,
             brand_font,
             layout.get_color_rgb('branding'),
-            layout.safe_width,
+            brand_width,
             brand_center_x
         )
     

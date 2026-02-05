@@ -229,27 +229,39 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
     # ===========================================
     # DRAW WORD TITLE
     # ===========================================
+    # Use individual margins if available, otherwise fall back to safe area
+    word_left = word_config.get('left_margin', layout.safe_left)
+    word_right = word_config.get('right_margin', layout.canvas_width - layout.safe_right)
+    word_width = layout.canvas_width - word_left - word_right
+    word_center_x = word_left + (word_width // 2)
+    
     draw_text_centered(
         draw=draw,
         text=word.capitalize(),
         y=word_config['y_start'] + 10,  # Small padding
         font=font_word,
         color=tuple(word_config['color']),
-        max_width=layout.safe_width,
-        center_x=layout.safe_center_x
+        max_width=word_width,
+        center_x=word_center_x
     )
     
     # ===========================================
     # DRAW DEFINITION
     # ===========================================
+    # Use individual margins if available, otherwise fall back to safe area
+    def_left = def_config.get('left_margin', layout.safe_left)
+    def_right = def_config.get('right_margin', layout.canvas_width - layout.safe_right)
+    def_width = layout.canvas_width - def_left - def_right
+    def_center_x = def_left + (def_width // 2)
+    
     draw_text_centered(
         draw=draw,
         text=definition,
         y=def_config['y_start'] + 5,  # Small padding
         font=font_definition,
         color=tuple(def_config['color']),
-        max_width=layout.safe_width - 40,  # Extra padding for readability
-        center_x=layout.safe_center_x,
+        max_width=def_width - 40,  # Extra padding for readability
+        center_x=def_center_x,
         line_spacing=def_config.get('line_spacing', 1.2)
     )
     
@@ -287,11 +299,13 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
             
             vocab_image = vocab_image.resize(new_size, Image.Resampling.LANCZOS)
             
-            # Position image using x_offset if available, otherwise center
-            if 'x_offset' in img_config:
-                img_x = img_config['x_offset'] + (max_width - new_size[0]) // 2
-            else:
-                img_x = (layout.canvas_width - new_size[0]) // 2
+            # Position image using individual margins if available
+            img_left = img_config.get('left_margin', img_config.get('x_offset', layout.safe_left))
+            img_right = img_config.get('right_margin', layout.canvas_width - layout.safe_right)
+            img_area_width = layout.canvas_width - img_left - img_right
+            
+            # Center image within its area
+            img_x = img_left + (img_area_width - new_size[0]) // 2
             img_y = img_config['y_start'] + (img_config['height'] - new_size[1]) // 2
             
             # Paste with alpha channel
@@ -304,11 +318,11 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
     # DRAW BRANDING
     # ===========================================
     if layout.show_branding:
-        # Calculate center_x based on x_offset if available
-        if 'x_offset' in brand_config:
-            brand_center_x = brand_config['x_offset'] + layout.safe_width // 2
-        else:
-            brand_center_x = layout.safe_center_x
+        # Use individual margins if available
+        brand_left = brand_config.get('left_margin', brand_config.get('x_offset', layout.safe_left))
+        brand_right = brand_config.get('right_margin', layout.canvas_width - layout.safe_right)
+        brand_width = layout.canvas_width - brand_left - brand_right
+        brand_center_x = brand_left + (brand_width // 2)
         
         draw_text_centered(
             draw=draw,
@@ -316,7 +330,7 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
             y=brand_config['y_start'] + 5,
             font=font_branding,
             color=tuple(brand_config['color']),
-            max_width=layout.safe_width,
+            max_width=brand_width,
             center_x=brand_center_x
         )
     
