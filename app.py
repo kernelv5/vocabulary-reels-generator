@@ -109,9 +109,29 @@ HTML_TEMPLATE = '''
                     </h1>
                     <p class="text-purple-200 mt-2">Create YouTube Shorts-style vocabulary videos with AI</p>
                 </div>
-                <div class="text-right text-sm text-purple-200">
-                    <div>Docker Container</div>
-                    <div id="container-status" class="font-mono">Running</div>
+                <div class="flex items-center gap-4">
+                    <!-- Tools Dropdown -->
+                    <div class="relative" id="tools-dropdown">
+                        <button onclick="toggleToolsMenu()" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-tools"></i>
+                            <span>Tools</span>
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </button>
+                        <div id="tools-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-50 overflow-hidden">
+                            <a href="/layout-editor" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition">
+                                <i class="fas fa-sliders-h text-purple-600"></i>
+                                <span>Layout Editor</span>
+                            </a>
+                            <a href="/image-generator" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition">
+                                <i class="fas fa-image text-green-600"></i>
+                                <span>Image Generator</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="text-right text-sm text-purple-200">
+                        <div>Docker Container</div>
+                        <div id="container-status" class="font-mono">Running</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -391,6 +411,21 @@ HTML_TEMPLATE = '''
     </footer>
 
     <script>
+        // Toggle tools dropdown menu
+        function toggleToolsMenu() {
+            const menu = document.getElementById('tools-menu');
+            menu.classList.toggle('hidden');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('tools-dropdown');
+            const menu = document.getElementById('tools-menu');
+            if (dropdown && !dropdown.contains(e.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
         // Check services status
         async function checkStatus() {
             try {
@@ -1805,9 +1840,393 @@ def api_clear_files():
 # ============================================
 
 @app.route('/editor')
+@app.route('/layout-editor')
 def layout_editor():
     """Serve the layout editor interface."""
     return render_template_string(LAYOUT_EDITOR_HTML)
+
+
+# ============================================
+# IMAGE GENERATOR UI
+# ============================================
+
+IMAGE_GENERATOR_HTML = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Generator - Vocabulary Reels</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #10b981; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-6 shadow-lg">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="/" class="text-white/80 hover:text-white transition">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-bold flex items-center gap-2">
+                            <i class="fas fa-image"></i>
+                            Image Generator
+                        </h1>
+                        <p class="text-green-200 text-sm">Generate AI images with ComfyUI</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <a href="/layout-editor" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fas fa-sliders-h"></i>
+                        Layout Editor
+                    </a>
+                    <a href="/" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition flex items-center gap-2">
+                        <i class="fas fa-home"></i>
+                        Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left: Controls -->
+            <div class="space-y-6">
+                <!-- Prompt Input -->
+                <div class="card p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-pen text-green-600"></i>
+                        Prompt Settings
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-plus-circle text-green-500 mr-1"></i>
+                                Positive Prompt
+                            </label>
+                            <textarea id="positive-prompt" rows="5"
+                                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm"
+                                      placeholder="Describe what you want to see..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-minus-circle text-red-500 mr-1"></i>
+                                Negative Prompt
+                            </label>
+                            <textarea id="negative-prompt" rows="3"
+                                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm"
+                                      placeholder="Describe what you don't want..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Generation Settings -->
+                <div class="card p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-cog text-gray-600"></i>
+                        Generation Settings
+                    </h2>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Width</label>
+                            <input type="number" id="width" value="1024" 
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Height</label>
+                            <input type="number" id="height" value="1024" 
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Steps</label>
+                            <input type="number" id="steps" value="4" min="1" max="50"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">CFG Scale</label>
+                            <input type="number" id="cfg" value="2" min="1" max="20" step="0.5"
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Seed</label>
+                            <input type="number" id="seed" value="-1" 
+                                   class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                            <p class="text-xs text-gray-400 mt-1">-1 = random</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Sampler</label>
+                            <select id="sampler" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500">
+                                <option value="euler_ancestral">Euler Ancestral</option>
+                                <option value="euler">Euler</option>
+                                <option value="dpmpp_2m">DPM++ 2M</option>
+                                <option value="dpmpp_sde">DPM++ SDE</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="remove-bg" checked 
+                                   class="w-5 h-5 text-green-600 rounded focus:ring-green-500">
+                            <span class="text-sm font-medium text-gray-700">Remove Background (Transparent PNG)</span>
+                        </label>
+                    </div>
+                    
+                    <button onclick="generateImage()" id="generate-btn"
+                            class="w-full mt-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-magic"></i>
+                        Generate Image
+                    </button>
+                </div>
+                
+                <!-- Preset Templates -->
+                <div class="card p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-bookmark text-purple-600"></i>
+                        Quick Presets
+                    </h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="loadPreset('vocabulary')" class="p-3 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition text-left">
+                            <div class="font-semibold text-sm">Vocabulary Style</div>
+                            <div class="text-xs text-gray-500">Minimalist educational</div>
+                        </button>
+                        <button onclick="loadPreset('cartoon')" class="p-3 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition text-left">
+                            <div class="font-semibold text-sm">Cartoon Style</div>
+                            <div class="text-xs text-gray-500">Fun colorful illustrations</div>
+                        </button>
+                        <button onclick="loadPreset('realistic')" class="p-3 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition text-left">
+                            <div class="font-semibold text-sm">Realistic</div>
+                            <div class="text-xs text-gray-500">Photo-realistic images</div>
+                        </button>
+                        <button onclick="loadPreset('icon')" class="p-3 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition text-left">
+                            <div class="font-semibold text-sm">Icon Style</div>
+                            <div class="text-xs text-gray-500">Simple flat icons</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right: Preview -->
+            <div class="space-y-6">
+                <div class="card p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-eye text-blue-600"></i>
+                        Generated Image
+                    </h2>
+                    
+                    <div id="image-preview" class="bg-gray-100 rounded-xl min-h-[400px] flex items-center justify-center border-2 border-dashed border-gray-300">
+                        <div class="text-center text-gray-400">
+                            <i class="fas fa-image text-6xl mb-4"></i>
+                            <p>Generated image will appear here</p>
+                        </div>
+                    </div>
+                    
+                    <div id="image-actions" class="hidden mt-4 flex gap-3">
+                        <a id="download-link" href="#" download class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg text-center hover:bg-blue-700 transition">
+                            <i class="fas fa-download mr-2"></i>Download
+                        </a>
+                        <button onclick="copyImageUrl()" class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition">
+                            <i class="fas fa-link mr-2"></i>Copy URL
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Generation History -->
+                <div class="card p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-history text-orange-600"></i>
+                        Recent Generations
+                    </h2>
+                    <div id="history-grid" class="grid grid-cols-4 gap-2">
+                        <p class="col-span-4 text-gray-400 text-center py-4">No images generated yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let generatedImages = [];
+        let currentImageUrl = '';
+        
+        // Load layout config prompts on page load
+        async function loadLayoutPrompts() {
+            try {
+                const res = await fetch('/api/layout');
+                const config = await res.json();
+                
+                if (config.image_generation) {
+                    document.getElementById('positive-prompt').value = config.image_generation.prompt_template || '';
+                    document.getElementById('negative-prompt').value = config.image_generation.negative_prompt || '';
+                    document.getElementById('steps').value = config.image_generation.steps || 4;
+                    document.getElementById('cfg').value = config.image_generation.cfg_scale || 2;
+                    document.getElementById('width').value = config.image_generation.width || 1024;
+                    document.getElementById('height').value = config.image_generation.height || 1024;
+                }
+            } catch (e) {
+                console.error('Failed to load layout config:', e);
+            }
+        }
+        
+        // Generate image
+        async function generateImage() {
+            const positivePrompt = document.getElementById('positive-prompt').value;
+            const negativePrompt = document.getElementById('negative-prompt').value;
+            
+            if (!positivePrompt.trim()) {
+                alert('Please enter a positive prompt');
+                return;
+            }
+            
+            const btn = document.getElementById('generate-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner"></span> Generating...';
+            
+            document.getElementById('image-preview').innerHTML = `
+                <div class="text-center">
+                    <div class="loading-spinner mx-auto mb-4" style="width: 48px; height: 48px;"></div>
+                    <p class="text-gray-600">Generating image...</p>
+                    <p class="text-gray-400 text-sm mt-2">This may take 10-30 seconds</p>
+                </div>
+            `;
+            
+            try {
+                const res = await fetch('/api/image/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: positivePrompt,
+                        negative_prompt: negativePrompt,
+                        width: parseInt(document.getElementById('width').value),
+                        height: parseInt(document.getElementById('height').value),
+                        steps: parseInt(document.getElementById('steps').value),
+                        cfg_scale: parseFloat(document.getElementById('cfg').value),
+                        seed: parseInt(document.getElementById('seed').value),
+                        sampler: document.getElementById('sampler').value,
+                        remove_background: document.getElementById('remove-bg').checked
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success && data.image_url) {
+                    currentImageUrl = data.image_url;
+                    document.getElementById('image-preview').innerHTML = `
+                        <img src="${data.image_url}" alt="Generated image" 
+                             class="max-w-full max-h-[500px] rounded-lg shadow-lg" 
+                             style="background: repeating-conic-gradient(#f0f0f0 0% 25%, white 0% 50%) 50% / 20px 20px;">
+                    `;
+                    document.getElementById('image-actions').classList.remove('hidden');
+                    document.getElementById('download-link').href = data.image_url;
+                    
+                    // Add to history
+                    generatedImages.unshift(data.image_url);
+                    updateHistory();
+                } else {
+                    document.getElementById('image-preview').innerHTML = `
+                        <div class="text-center text-red-500">
+                            <i class="fas fa-exclamation-circle text-4xl mb-4"></i>
+                            <p>Generation failed</p>
+                            <p class="text-sm mt-2">${data.error || 'Unknown error'}</p>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                document.getElementById('image-preview').innerHTML = `
+                    <div class="text-center text-red-500">
+                        <i class="fas fa-exclamation-circle text-4xl mb-4"></i>
+                        <p>Generation failed</p>
+                        <p class="text-sm mt-2">${e.message}</p>
+                    </div>
+                `;
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> Generate Image';
+        }
+        
+        function updateHistory() {
+            const grid = document.getElementById('history-grid');
+            if (generatedImages.length === 0) {
+                grid.innerHTML = '<p class="col-span-4 text-gray-400 text-center py-4">No images generated yet</p>';
+                return;
+            }
+            
+            grid.innerHTML = generatedImages.slice(0, 8).map(url => `
+                <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-green-500 transition"
+                     onclick="showImage('${url}')"
+                     style="background: repeating-conic-gradient(#f0f0f0 0% 25%, white 0% 50%) 50% / 10px 10px;">
+                    <img src="${url}" alt="Generated" class="w-full h-full object-cover">
+                </div>
+            `).join('');
+        }
+        
+        function showImage(url) {
+            currentImageUrl = url;
+            document.getElementById('image-preview').innerHTML = `
+                <img src="${url}" alt="Generated image" 
+                     class="max-w-full max-h-[500px] rounded-lg shadow-lg"
+                     style="background: repeating-conic-gradient(#f0f0f0 0% 25%, white 0% 50%) 50% / 20px 20px;">
+            `;
+            document.getElementById('image-actions').classList.remove('hidden');
+            document.getElementById('download-link').href = url;
+        }
+        
+        function copyImageUrl() {
+            navigator.clipboard.writeText(window.location.origin + currentImageUrl);
+            alert('Image URL copied!');
+        }
+        
+        // Preset templates
+        function loadPreset(preset) {
+            const presets = {
+                vocabulary: {
+                    positive: 'Simple minimalist illustration, clean simple line drawing, muted brown and beige earth tones, simple cartoon characters or objects, solid pure white background, no text no letters no words, centered composition, flat illustration style, warm colors, educational clipart aesthetic, isolated on white',
+                    negative: 'text, words, letters, numbers, watermark, signature, complex background, gradient, pattern, dark background, colorful background, photorealistic, 3d render, busy, cluttered, neon, vibrant colors'
+                },
+                cartoon: {
+                    positive: 'Cute cartoon illustration, colorful, playful, rounded shapes, expressive characters, fun and whimsical, childrens book illustration style, vibrant colors, white background',
+                    negative: 'realistic, photorealistic, dark, scary, horror, text, words, complex background'
+                },
+                realistic: {
+                    positive: 'Professional photograph, high quality, sharp focus, beautiful lighting, natural colors, studio photography, detailed, 8k resolution',
+                    negative: 'cartoon, illustration, drawing, anime, text, watermark, low quality, blurry'
+                },
+                icon: {
+                    positive: 'Simple flat icon, minimal, clean lines, single color, geometric shapes, modern app icon design, white background, centered, vector style',
+                    negative: 'realistic, detailed, complex, gradient, 3d, shadow, text, words, busy'
+                }
+            };
+            
+            if (presets[preset]) {
+                document.getElementById('positive-prompt').value = presets[preset].positive;
+                document.getElementById('negative-prompt').value = presets[preset].negative;
+            }
+        }
+        
+        // Load prompts on page load
+        loadLayoutPrompts();
+    </script>
+</body>
+</html>
+'''
+
+@app.route('/image-generator')
+def image_generator():
+    """Serve the image generator interface."""
+    return render_template_string(IMAGE_GENERATOR_HTML)
 
 
 # ============================================
@@ -1989,50 +2408,71 @@ def api_download_preview():
 
 @app.route('/api/image/generate', methods=['POST'])
 def api_generate_image_advanced():
-    """Generate image with advanced options (seed, steps, cfg, etc.)."""
-    from src.image_generator_advanced import generate_vocab_image_advanced
+    """Generate image with custom prompt (no word/definition required)."""
+    from src.comfyui_client import ComfyUIClient
+    from datetime import datetime
     
     data = request.get_json() or {}
     
-    word = data.get('word')
-    definition = data.get('definition')
+    # Get prompt directly
+    prompt = data.get('prompt', '').strip()
+    negative_prompt = data.get('negative_prompt', config.IMAGE_NEGATIVE_PROMPT).strip()
     
-    if not word or not definition:
-        return jsonify({"error": "word and definition required"}), 400
+    if not prompt:
+        return jsonify({"error": "prompt is required"}), 400
     
-    # Optional parameters
-    kwargs = {}
-    if 'custom_prompt' in data:
-        kwargs['custom_prompt'] = data['custom_prompt']
-    if 'custom_negative' in data:
-        kwargs['custom_negative'] = data['custom_negative']
-    if 'seed' in data:
-        kwargs['seed'] = int(data['seed'])
-    if 'steps' in data:
-        kwargs['steps'] = int(data['steps'])
-    if 'cfg_scale' in data:
-        kwargs['cfg_scale'] = float(data['cfg_scale'])
-    if 'width' in data:
-        kwargs['width'] = int(data['width'])
-    if 'height' in data:
-        kwargs['height'] = int(data['height'])
-    if 'sampler' in data:
-        kwargs['sampler'] = data['sampler']
-    if 'remove_background' in data:
-        kwargs['remove_background'] = bool(data['remove_background'])
+    # Get optional parameters with defaults
+    width = int(data.get('width', 1024))
+    height = int(data.get('height', 1024))
+    steps = int(data.get('steps', 4))
+    cfg_scale = float(data.get('cfg_scale', 2.0))
+    seed = int(data.get('seed', -1))
+    remove_background = data.get('remove_background', True)
     
     # Generate filename
-    safe_name = "".join(c if c.isalnum() else "_" for c in word.lower())
-    from datetime import datetime
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = config.OUTPUT_DIR / f"{safe_name}_image_{timestamp}.png"
+    output_path = config.OUTPUT_DIR / f"generated_image_{timestamp}.png"
     
-    result = generate_vocab_image_advanced(word, definition, output_path, **kwargs)
-    
-    if result.get('success'):
-        result['image_url'] = f"/output/{output_path.name}"
-    
-    return jsonify(result)
+    try:
+        # Create ComfyUI client and generate image
+        client = ComfyUIClient()
+        
+        if not client.is_server_running():
+            return jsonify({"success": False, "error": "ComfyUI server is not running. Please start it first."})
+        
+        result_path = client.generate_image(
+            prompt=prompt,
+            negative_prompt=negative_prompt,
+            width=width,
+            height=height,
+            steps=steps,
+            cfg=cfg_scale,
+            seed=seed if seed != -1 else None,
+            output_path=output_path
+        )
+        
+        if not result_path or not result_path.exists():
+            return jsonify({"success": False, "error": "Image generation failed"})
+        
+        # Remove background if requested
+        if remove_background and result_path.exists():
+            try:
+                from rembg import remove
+                from PIL import Image
+                img = Image.open(result_path)
+                img_no_bg = remove(img)
+                img_no_bg.save(result_path, 'PNG')
+            except Exception as e:
+                print(f"Background removal failed: {e}")
+        
+        return jsonify({
+            "success": True,
+            "image_url": f"/output/{result_path.name}",
+            "seed": seed
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
 
 
 # ============================================
