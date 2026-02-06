@@ -89,7 +89,7 @@
     "layout_size_description": "When true, uses elements.image dimensions (max_width x height) instead of fixed width/height below",
     "height": 1024,
     "negative_prompt": "text, words, letters, numbers, watermark, signature, complex background, gradient, pattern, dark background, colorful background, photorealistic, 3d render, busy, cluttered, neon, vibrant colors",
-    "prompt_template": "Simple minimalist illustration showing the concept of \"{word}\": {definition}. Style: Clean simple line drawing, muted brown and beige earth tones, simple cartoon characters or objects, solid pure white background, no text no letters no words, centered composition, flat illustration style, warm colors, educational clipart aesthetic, isolated on white.",
+    "prompt_template": "Simple minimalist illustration showing the concept of \"{word}\": {prompt_image_guideline}. Style: Clean simple line drawing, muted brown and beige earth tones, simple cartoon characters or objects, solid pure white background, no text no letters no words, centered composition, flat illustration style, warm colors, educational clipart aesthetic, isolated on white.",
     "sampler": "euler_ancestral",
     "scheduler": "normal",
     "seed": -1,

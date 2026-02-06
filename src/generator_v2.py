@@ -54,6 +54,7 @@ class VideoGeneratorV2:
                       word: str, 
                       definition: str, 
                       example: str = "",
+                      prompt_image_guideline: str = "",
                       custom_image_path: Optional[Path] = None,
                       word_index: Optional[int] = None,
                       image_gen_params: Optional[Dict] = None) -> Dict:
@@ -64,6 +65,7 @@ class VideoGeneratorV2:
             word: The vocabulary word
             definition: Word definition
             example: Optional example sentence
+            prompt_image_guideline: Custom guideline for image generation (uses definition if empty)
             custom_image_path: Optional path to user-uploaded image
             word_index: Optional CSV index to update status
             image_gen_params: Optional dict with: seed, steps, cfg_scale, custom_prompt, etc.
@@ -105,6 +107,7 @@ class VideoGeneratorV2:
                     word=word,
                     definition=definition,
                     output_path=image_path,
+                    prompt_image_guideline=prompt_image_guideline,
                     **image_params
                 )
                 

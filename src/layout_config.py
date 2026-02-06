@@ -120,10 +120,10 @@ class LayoutConfig:
     def image_gen(self) -> Dict[str, Any]:
         return self.config['image_generation']
     
-    def get_image_prompt(self, word: str, definition: str) -> str:
-        """Generate image prompt with word and definition."""
+    def get_image_prompt(self, word: str, prompt_image_guideline: str) -> str:
+        """Generate image prompt with word and prompt_image_guideline."""
         template = self.image_gen['prompt_template']
-        return template.format(word=word, definition=definition)
+        return template.format(word=word, prompt_image_guideline=prompt_image_guideline)
     
     @property
     def image_negative_prompt(self) -> str:

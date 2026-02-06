@@ -24,6 +24,7 @@ CSV_FILE = BASE_DIR / "csv_database_doNotTouch.csv"
 COL_WORD = "word"
 COL_DEFINITION = "definition"
 COL_EXAMPLE = "example"
+COL_PROMPT_IMAGE = "prompt_image_guideline"  # Custom prompt for image generation
 COL_STATUS = "status"
 COL_VIDEO_PATH = "video_path"
 
@@ -47,7 +48,8 @@ IMAGE_STEPS = 4
 IMAGE_CFG = 2.0
 
 # Image prompt - Generate with WHITE background (will be removed to transparent)
-IMAGE_PROMPT_TEMPLATE = """Simple minimalist illustration showing the concept of "{word}": {definition}. 
+# Uses {word} and {prompt_image_guideline} from CSV (falls back to definition if empty)
+IMAGE_PROMPT_TEMPLATE = """Simple minimalist illustration showing the concept of "{word}": {prompt_image_guideline}. 
 Style: Clean simple line drawing, muted brown and beige earth tones, 
 simple cartoon characters or objects, solid pure white background, 
 no text no letters no words, centered composition, flat illustration style, 

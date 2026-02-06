@@ -1584,11 +1584,12 @@ def api_add_word():
     word = data.get('word')
     definition = data.get('definition')
     example = data.get('example', '')
+    prompt_image_guideline = data.get('prompt_image_guideline', '')
     
     if not word or not definition:
         return jsonify({"error": "word and definition are required"}), 400
     
-    index = add_word(word, definition, example)
+    index = add_word(word, definition, example, prompt_image_guideline)
     return jsonify({"success": True, "index": index, "word": word})
 
 
@@ -1651,6 +1652,7 @@ def api_generate_by_index(index):
         word_data['word'],
         word_data['definition'],
         word_data.get('example', ''),
+        prompt_image_guideline=word_data.get('prompt_image_guideline', ''),
         word_index=index
     )
     return jsonify(result)
@@ -1701,6 +1703,7 @@ def api_generate_batch():
             word_data['word'],
             word_data['definition'],
             word_data.get('example', ''),
+            prompt_image_guideline=word_data.get('prompt_image_guideline', ''),
             word_index=word_data['index']
         )
         results.append(result)

@@ -62,6 +62,7 @@ class AdvancedImageGenerator:
                       word: str,
                       definition: str,
                       output_path: Path,
+                      prompt_image_guideline: str = None,
                       custom_prompt: Optional[str] = None,
                       custom_negative: Optional[str] = None,
                       seed: int = -1,
@@ -76,8 +77,9 @@ class AdvancedImageGenerator:
         
         Args:
             word: Vocabulary word
-            definition: Word definition
+            definition: Word definition (used for display, fallback for image prompt)
             output_path: Where to save final image
+            prompt_image_guideline: Custom guideline for image generation (overrides definition)
             custom_prompt: Override default prompt template
             custom_negative: Override default negative prompt
             seed: Random seed (-1 for random)
@@ -93,6 +95,9 @@ class AdvancedImageGenerator:
         """
         layout = get_layout_config()
         
+        # Use prompt_image_guideline if provided, otherwise fall back to definition
+        image_prompt_content = prompt_image_guideline.strip() if prompt_image_guideline and prompt_image_guideline.strip() else definition
+        
         # Use parameters or defaults
         width = width or self.default_width
         height = height or self.default_height
@@ -103,11 +108,11 @@ class AdvancedImageGenerator:
         if seed == -1:
             seed = int(time.time() * 1000) % (2**32)
         
-        # Build prompts
+        # Build prompts - use prompt_image_guideline for image generation
         if custom_prompt:
-            prompt = custom_prompt.format(word=word, definition=definition)
+            prompt = custom_prompt.format(word=word, prompt_image_guideline=image_prompt_content, definition=definition)
         else:
-            prompt = layout.get_image_prompt(word, definition)
+            prompt = layout.get_image_prompt(word, image_prompt_content)
         
         if custom_negative:
             negative_prompt = custom_negative
