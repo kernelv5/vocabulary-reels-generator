@@ -1,10 +1,13 @@
 # 🤖 AI Assistant Context File
 
-> **PURPOSE**: This file contains comprehensive project context for AI assistants (Claude, GPT, Copilot, etc.).
-> When starting a new session or switching AI models, simply say:
-> **"Read AI_CONTEXT.md and follow the instructions"**
+## Current Version
 
----
+- **Branch**: `version-4`
+- **Commit**: `c7dc050` (2026-02-06 09:30:55 +0800)
+- **Version**: `4.0.0`
+- **Last Commit Message**: Add version info system with homepage display
+- **Description**: Added version info display on homepage, prompt_image_guideline field for CSV
+
 
 ## 📋 Quick Instructions for AI
 

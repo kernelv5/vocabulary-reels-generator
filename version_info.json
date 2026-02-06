@@ -1,0 +1,11 @@
+{
+  "branch": "version-4",
+  "commit": "c7dc050",
+  "commit_date": "2026-02-06 09:30:55 +0800",
+  "last_updated": "2026-02-06T09:30:59.437556",
+  "version": "4.0.0",
+  "description": "Added version info display on homepage, prompt_image_guideline field for CSV",
+  "commit_full": "c7dc050d947fbf0797b65ba6b99e36f6d5add6ff",
+  "commit_message": "Add version info system with homepage display",
+  "author": "kernelv5"
+}

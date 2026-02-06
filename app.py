@@ -129,8 +129,37 @@ HTML_TEMPLATE = '''
                         </div>
                     </div>
                     <div class="text-right text-sm text-purple-200">
-                        <div>Docker Container</div>
+                        <div id="version-info" class="font-mono text-xs cursor-pointer hover:text-white" onclick="toggleVersionDetails()">
+                            <span id="version-branch">Loading...</span> • <span id="version-commit">...</span>
+                        </div>
                         <div id="container-status" class="font-mono">Running</div>
+                    </div>
+                    <!-- Version Details Popup -->
+                    <div id="version-details" class="hidden absolute right-6 top-20 bg-white text-gray-800 rounded-lg shadow-xl z-50 p-4 w-72">
+                        <h3 class="font-bold text-purple-600 mb-2 flex items-center gap-2">
+                            <i class="fas fa-code-branch"></i> Version Info
+                        </h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Version:</span>
+                                <span id="detail-version" class="font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Branch:</span>
+                                <span id="detail-branch" class="font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Commit:</span>
+                                <span id="detail-commit" class="font-mono">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Updated:</span>
+                                <span id="detail-date" class="font-mono text-xs">-</span>
+                            </div>
+                            <div class="pt-2 border-t border-gray-200">
+                                <span class="text-gray-500 text-xs" id="detail-description">-</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -424,7 +453,40 @@ HTML_TEMPLATE = '''
             if (dropdown && !dropdown.contains(e.target)) {
                 menu.classList.add('hidden');
             }
+            // Close version details when clicking outside
+            const versionDetails = document.getElementById('version-details');
+            const versionInfo = document.getElementById('version-info');
+            if (versionDetails && versionInfo && !versionDetails.contains(e.target) && !versionInfo.contains(e.target)) {
+                versionDetails.classList.add('hidden');
+            }
         });
+
+        // Toggle version details popup
+        function toggleVersionDetails() {
+            const details = document.getElementById('version-details');
+            details.classList.toggle('hidden');
+        }
+
+        // Load version info
+        async function loadVersionInfo() {
+            try {
+                const res = await fetch('/api/version');
+                const data = await res.json();
+                
+                document.getElementById('version-branch').textContent = data.branch || 'unknown';
+                document.getElementById('version-commit').textContent = data.commit || '---';
+                
+                document.getElementById('detail-version').textContent = data.version || '-';
+                document.getElementById('detail-branch').textContent = data.branch || '-';
+                document.getElementById('detail-commit').textContent = data.commit || '-';
+                document.getElementById('detail-date').textContent = data.last_updated || data.commit_date || '-';
+                document.getElementById('detail-description').textContent = data.description || '-';
+            } catch (e) {
+                console.error('Version info load failed:', e);
+                document.getElementById('version-branch').textContent = 'dev';
+                document.getElementById('version-commit').textContent = 'local';
+            }
+        }
 
         // Check services status
         async function checkStatus() {
@@ -918,6 +980,7 @@ HTML_TEMPLATE = '''
         checkStatus();
         loadWords();
         loadOutputFiles();
+        loadVersionInfo();
         
         // Auto-refresh status every 30s
         setInterval(checkStatus, 30000);
@@ -1562,6 +1625,25 @@ def serve_output(filename):
 def api_health():
     """Health check endpoint for Docker."""
     return jsonify({"status": "healthy", "service": "vocab-reels-generator"})
+
+
+@app.route('/api/version', methods=['GET'])
+def api_version():
+    """Get current version info."""
+    version_file = config.BASE_DIR / "version_info.json"
+    
+    if version_file.exists():
+        import json
+        with open(version_file, 'r') as f:
+            return jsonify(json.load(f))
+    
+    # Default fallback
+    return jsonify({
+        "version": "dev",
+        "branch": "unknown",
+        "commit": "local",
+        "description": "Version info not available"
+    })
 
 
 @app.route('/api/status', methods=['GET'])

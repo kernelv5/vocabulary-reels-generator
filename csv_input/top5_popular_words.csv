@@ -1,6 +1,6 @@
-word,definition,example
-Love,A deep affection or strong feeling of care and attachment toward someone or something.,I love spending time with my family.
-Time,A continuous progression of events from past to future measured in seconds minutes and hours.,Time flies when you're having fun.
-Life,The existence of a living being including experiences and growth from birth to death.,Life is full of unexpected surprises.
-World,The Earth and all its inhabitants or a particular sphere of activity and experience.,Travel opens your eyes to the world.
-People,Human beings collectively or a group of individuals sharing common characteristics.,People from different cultures have unique traditions.
+word,definition,example,prompt_image_guideline
+Love,A deep affection or strong feeling of care and attachment toward someone or something.,I love spending time with my family.,Two people holding hands with a heart symbol between them
+Time,A continuous progression of events from past to future measured in seconds minutes and hours.,Time flies when you're having fun.,A simple clock or hourglass with sand flowing
+Life,The existence of a living being including experiences and growth from birth to death.,Life is full of unexpected surprises.,A growing plant from seed to flower showing life cycle
+World,The Earth and all its inhabitants or a particular sphere of activity and experience.,Travel opens your eyes to the world.,A simple globe or earth with people standing around it
+People,Human beings collectively or a group of individuals sharing common characteristics.,People from different cultures have unique traditions.,A group of diverse stick figures standing together happily

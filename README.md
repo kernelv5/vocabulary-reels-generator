@@ -1,6 +1,16 @@
 # Vocabulary Reels Generator
 
-A Dockerized Flask application for generating YouTube Shorts / Instagram Reels style vocabulary videos with AI-powered image generation and text-to-speech.
+
+## 📌 Version Info
+
+| Property | Value |
+|----------|-------|
+| **Version** | `4.0.0` |
+| **Branch** | `version-4` |
+| **Commit** | `c7dc050` |
+| **Last Updated** | 2026-02-06 09:30:55 +0800 |
+| **Description** | Added version info display on homepage, prompt_image_guideline field for CSV |
+
 
 ## 🚀 Quick Start
 
