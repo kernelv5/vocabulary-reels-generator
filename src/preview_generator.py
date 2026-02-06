@@ -2,6 +2,7 @@
 Layout Preview System - Generate preview images to test layout configuration
 """
 
+import re
 from pathlib import Path
 from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
@@ -124,8 +125,61 @@ def draw_text_centered(draw: ImageDraw.Draw, text: str, y: int,
         draw.text((x, y), text, font=font, fill=color)
 
 
+def draw_text_with_bold_word(draw: ImageDraw.Draw, text: str, word: str, y: int,
+                             font: ImageFont.FreeTypeFont, bold_font: ImageFont.FreeTypeFont,
+                             color: tuple, max_width: int, center_x: int,
+                             line_spacing: float = 1.2):
+    """Draw text centered with bold word emphasis."""
+    if not text:
+        return
+
+    word_lower = word.lower()
+    tokens = re.split(r'(\s+)', text)
+
+    def token_font(token: str) -> ImageFont.FreeTypeFont:
+        if token.isspace():
+            return font
+        normalized = re.sub(r'[^A-Za-z0-9]+', '', token).lower()
+        return bold_font if normalized == word_lower and normalized else font
+
+    def token_width(token: str) -> int:
+        token_bbox = draw.textbbox((0, 0), token, font=token_font(token))
+        return token_bbox[2] - token_bbox[0]
+
+    base_height = draw.textbbox((0, 0), "Ag", font=font)[3]
+    bold_height = draw.textbbox((0, 0), "Ag", font=bold_font)[3]
+    line_height = int(max(base_height, bold_height) * line_spacing)
+
+    lines = []
+    current_line = []
+    current_width = 0
+
+    for token in tokens:
+        width = token_width(token)
+        if current_line and current_width + width > max_width:
+            lines.append(current_line)
+            current_line = [token]
+            current_width = width
+        else:
+            current_line.append(token)
+            current_width += width
+
+    if current_line:
+        lines.append(current_line)
+
+    current_y = y
+    for line_tokens in lines:
+        line_width = sum(token_width(token) for token in line_tokens)
+        x = center_x - (line_width // 2)
+        for token in line_tokens:
+            draw.text((x, current_y), token, font=token_font(token), fill=color)
+            x += token_width(token)
+        current_y += line_height
+
+
 def create_preview(word: str = "Disband", 
                    definition: str = "To break up or stop working together as a group",
+                   example: str = "The team decided to disband after the project ended",
                    output_path: Optional[Path] = None,
                    show_guides: bool = True) -> Path:
     """
@@ -157,7 +211,7 @@ def create_preview(word: str = "Disband",
                  fill=guide_color, width=2)
         
         # Element boundaries
-        elements = ['word_title', 'definition', 'image', 'branding']
+        elements = ['word_title', 'definition', 'example', 'branding']
         for elem_name in elements:
             elem = layout.get_element(elem_name)
             y_start = elem['y_start']
@@ -184,6 +238,17 @@ def create_preview(word: str = "Disband",
     def_font = find_font(
         layout.font_family,
         layout.definition['font_size'],
+        layout.fallback_fonts
+    )
+
+    example_font = find_font(
+        layout.font_family,
+        layout.example['font_size'],
+        layout.fallback_fonts
+    )
+    example_bold_font = find_font(
+        layout.font_family,
+        layout.example['font_size'] + 2,
         layout.fallback_fonts
     )
     
@@ -225,29 +290,24 @@ def create_preview(word: str = "Disband",
         def_center_x
     )
     
-    # Draw placeholder for image - use individual margins if available
-    img_elem = layout.image
-    img_left = img_elem.get('left_margin', img_elem.get('x_offset', layout.safe_left))
-    img_right = img_elem.get('right_margin', layout.canvas_width - layout.safe_right)
-    img_area_width = layout.canvas_width - img_left - img_right
-    img_center_x = img_left + (img_area_width // 2)
-    img_center_y = (img_elem['y_start'] + img_elem['y_end']) // 2
-    placeholder_size = 180
-    
-    draw.rectangle([
-        img_center_x - placeholder_size//2,
-        img_center_y - placeholder_size//2,
-        img_center_x + placeholder_size//2,
-        img_center_y + placeholder_size//2
-    ], fill=(240, 230, 220), outline=(200, 180, 160), width=3)
-    
-    # Draw "[IMAGE]" text in placeholder
-    placeholder_font = find_font(layout.font_family, 36, layout.fallback_fonts)
-    draw.text(
-        (img_center_x - 60, img_center_y - 20),
-        "[IMAGE]",
-        font=placeholder_font,
-        fill=(150, 140, 130)
+    # Draw example text
+    example_elem = layout.example
+    example_left = example_elem.get('left_margin', layout.safe_left)
+    example_right = example_elem.get('right_margin', layout.canvas_width - layout.safe_right)
+    example_width = layout.canvas_width - example_left - example_right
+    example_center_x = example_left + (example_width // 2)
+
+    draw_text_with_bold_word(
+        draw,
+        example,
+        word,
+        example_elem['y_start'] + 10,
+        example_font,
+        example_bold_font,
+        layout.get_color_rgb('example'),
+        example_width - 40,
+        example_center_x,
+        line_spacing=example_elem.get('line_spacing', 1.2)
     )
     
     # Draw branding - use individual margins if available

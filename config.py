@@ -10,10 +10,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).parent.resolve()
 OUTPUT_DIR = BASE_DIR / "output"
 TEMP_DIR = BASE_DIR / "temp"
-UPLOADS_DIR = BASE_DIR / "uploads"
 
 # Create directories
-for d in [OUTPUT_DIR, TEMP_DIR, UPLOADS_DIR]:
+for d in [OUTPUT_DIR, TEMP_DIR]:
     d.mkdir(exist_ok=True)
 
 # ===========================================
@@ -24,7 +23,7 @@ CSV_FILE = BASE_DIR / "csv_database_doNotTouch.csv"
 COL_WORD = "word"
 COL_DEFINITION = "definition"
 COL_EXAMPLE = "example"
-COL_PROMPT_IMAGE = "prompt_image_guideline"  # Custom prompt for image generation
+COL_PROMPT_IMAGE = "prompt_image_guideline"  # Legacy column (image generation removed)
 COL_VOCAB_TYPE = "vocabulary_type"  # e.g., GeneralEnglish, BusinessEnglish
 COL_REVISION = "revision"  # Current revision count
 COL_TARGET_REVISION = "target_revision"  # Target revision count (e.g., 5)
@@ -38,29 +37,6 @@ COL_VIDEO_PATH = "video_path"
 JSON2VIDEO_API_KEY = os.environ.get("JSON2VIDEO_API_KEY", "")
 JSON2VIDEO_TEMPLATE_ID = os.environ.get("JSON2VIDEO_TEMPLATE_ID", "")  # Optional: pre-saved template
 JSON2VIDEO_ENABLED = os.environ.get("JSON2VIDEO_ENABLED", "false").lower() == "true"
-
-# ===========================================
-# COMFYUI - Image Generation (for illustrations)
-# ===========================================
-COMFYUI_URL = os.environ.get("COMFYUI_URL", "http://host.docker.internal:8188")
-COMFYUI_MODEL = os.environ.get("COMFYUI_MODEL", "DreamShaperXL_Lightning.safetensors")
-
-IMAGE_WIDTH = 1536
-IMAGE_HEIGHT = 1536
-IMAGE_STEPS = 6
-IMAGE_CFG = 2.0
-
-# Image prompt - Generate with WHITE background (will be removed to transparent)
-# Uses {word} and {prompt_image_guideline} from CSV (falls back to definition if empty)
-IMAGE_PROMPT_TEMPLATE = """Simple minimalist illustration showing the concept of "{word}": {prompt_image_guideline}. 
-Style: Clean simple line drawing, muted brown and beige earth tones, 
-simple cartoon characters or objects, solid pure white background, 
-no text no letters no words, centered composition, flat illustration style, 
-warm colors, educational clipart aesthetic, isolated on white."""
-
-IMAGE_NEGATIVE_PROMPT = """text, words, letters, numbers, watermark, signature, 
-complex background, gradient, pattern, dark background, colorful background,
-photorealistic, 3d render, busy, cluttered, neon, vibrant colors"""
 
 # ===========================================
 # LOCAL TTS - Chatterbox TTS Server  

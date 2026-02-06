@@ -9,14 +9,13 @@
 | **Branch** | `version-4` |
 | **Commit** | `c7dc050` |
 | **Last Updated** | 2026-02-06 09:30:55 +0800 |
-| **Description** | Added version info display on homepage, prompt_image_guideline field for CSV |
+| **Description** | Added version info display on homepage |
 
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 Make sure these services are running on your **host machine**:
-- **ComfyUI** at `http://127.0.0.1:8188` (with DreamShaperXL_Lightning model)
 - **Chatterbox TTS Server** at `http://localhost:8004`
 
 ### Run with Docker
@@ -50,30 +49,26 @@ vocabulary-reels-generator/
 ├── src/
 │   ├── generator_v2.py         # Main video generation pipeline (uses layout_config.json)
 │   ├── video_composer_v2.py    # FFmpeg video creation with layout support
-│   ├── image_generator_advanced.py  # ComfyUI image generation
 │   ├── preview_generator.py    # Layout preview generation
-│   ├── comfyui_client.py       # ComfyUI API client
 │   ├── tts_client.py           # Text-to-speech client
 │   ├── csv_reader.py           # CSV file handling
 │   ├── layout_config.py        # Layout configuration loader
 │   └── layout_editor_routes.py # Layout editor API endpoints
 ├── output/                     # Generated videos (Docker volume)
 ├── temp/                       # Temporary files
-└── uploads/                    # Uploaded images
+
 ```
 
 ## 🎨 Key Features
 
 ### Layout Editor
 - Visual drag-and-drop layout configuration
-- Per-element margins (left/right) for word, definition, image, branding
+- Per-element margins (left/right) for word, definition, example, branding
 - Real-time preview of layout changes
 - All settings saved to `layout_config.json`
 
 ### Video Generation
-- AI image generation via ComfyUI (Stable Diffusion XL Lightning)
 - Text-to-speech via Chatterbox TTS
-- Background removal with rembg
 - FFmpeg video composition with audio sync
 
 ### Batch Processing
@@ -133,15 +128,13 @@ Serendipity,Finding something good by chance,It was serendipity that we met.
 ### layout_config.json
 Controls all visual aspects:
 - Canvas size (1080x1920 for 9:16)
-- Element positions (word, definition, image, branding)
+- Element positions (word, definition, example, branding)
 - Font sizes and colors
-- Image generation prompts
 - Video duration and quality
 
 ### Environment Variables (docker-compose.yml)
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `COMFYUI_URL` | `http://host.docker.internal:8188` | ComfyUI server |
 | `TTS_URL` | `http://host.docker.internal:8004/v1/audio/speech` | TTS server |
 
 ## 🛠️ Troubleshooting
@@ -150,7 +143,7 @@ Controls all visual aspects:
 Services run on host machine. Docker uses `host.docker.internal` to reach them.
 
 ### Check service status
-Visit http://localhost:5000 and check the status indicators for ComfyUI and TTS.
+Visit http://localhost:5000 and check the status indicator for TTS.
 
 ### View container logs
 ```bash

@@ -14,8 +14,6 @@ import config
 from src.csv_reader import update_word_status
 from src.tts_client import generate_vocab_audio, check_tts_status
 from src.video_composer_v2 import create_video_frame, create_video_with_audio, check_ffmpeg
-from src.image_generator_advanced import AdvancedImageGenerator
-from src.layout_config import get_layout_config
 
 
 class VideoGeneratorV2:
@@ -29,35 +27,26 @@ class VideoGeneratorV2:
             "error": None,
             "is_processing": False
         }
-        self.image_generator = AdvancedImageGenerator()
     
     def get_status(self) -> Dict:
         return self.status.copy()
     
     def check_services(self) -> Dict:
         """Check all required services."""
-        comfyui_running = self.image_generator.is_server_running()
         tts = check_tts_status()
         ffmpeg = check_ffmpeg()
         
         return {
-            "comfyui": {
-                "running": comfyui_running,
-                "url": self.image_generator.comfyui_url
-            },
             "tts": tts,
             "ffmpeg": {"installed": ffmpeg},
-            "all_ok": comfyui_running and ffmpeg
+            "all_ok": ffmpeg and tts.get("running", False)
         }
     
     def generate_video(self, 
                       word: str, 
                       definition: str, 
                       example: str = "",
-                      prompt_image_guideline: str = "",
-                      custom_image_path: Optional[Path] = None,
                       word_index: Optional[int] = None,
-                      image_gen_params: Optional[Dict] = None,
                       vocabulary_type: str = "GeneralEnglish",
                       revision: int = 1,
                       target_revision: int = 5) -> Dict:
@@ -68,10 +57,7 @@ class VideoGeneratorV2:
             word: The vocabulary word
             definition: Word definition
             example: Optional example sentence
-            prompt_image_guideline: Custom guideline for image generation (uses definition if empty)
-            custom_image_path: Optional path to user-uploaded image
             word_index: Optional CSV index to update status
-            image_gen_params: Optional dict with: seed, steps, cfg_scale, custom_prompt, etc.
             vocabulary_type: Type of vocabulary (e.g., GeneralEnglish, BusinessEnglish)
             revision: Current revision count
             target_revision: Target revision count
@@ -94,54 +80,27 @@ class VideoGeneratorV2:
         
         # Paths
         safe_name = safe_word.lower()
-        image_path = config.TEMP_DIR / f"{safe_name}_image.png"
         audio_path = config.TEMP_DIR / f"{safe_name}_audio.mp3"
         frame_path = config.TEMP_DIR / f"{safe_name}_frame.png"
         video_path = config.OUTPUT_DIR / video_filename
         
         try:
-            # Step 1: Get/Generate Image
-            self.status["current_step"] = "generating_image"
-            self.status["progress"] = 10
-            
-            if custom_image_path and Path(custom_image_path).exists():
-                # Use custom uploaded image
-                image_path = Path(custom_image_path)
-                self.status["progress"] = 40
-            else:
-                # Generate with advanced options
-                image_params = image_gen_params or {}
-                result = self.image_generator.generate_image(
-                    word=word,
-                    definition=definition,
-                    output_path=image_path,
-                    prompt_image_guideline=prompt_image_guideline,
-                    **image_params
-                )
-                
-                if not result.get('success'):
-                    raise Exception(f"Image generation failed: {result.get('error')}")
-                
-                self.status["progress"] = 40
-            
-            # Step 2: Generate Audio
+            # Step 1: Generate Audio
             self.status["current_step"] = "generating_audio"
             generate_vocab_audio(word, definition, audio_path, example)
-            self.status["progress"] = 70
+            self.status["progress"] = 50
             
-            # Step 3: Create Video Frame
+            # Step 2: Create Video Frame
             self.status["current_step"] = "creating_frame"
-            create_video_frame(word, definition, image_path, frame_path)
-            self.status["progress"] = 85
+            create_video_frame(word, definition, example, frame_path)
+            self.status["progress"] = 80
             
-            # Step 4: Compose Video with Audio
+            # Step 3: Compose Video with Audio
             self.status["current_step"] = "composing_video"
             create_video_with_audio(frame_path, audio_path, video_path)
             self.status["progress"] = 100
             
-            # Cleanup temp files (but not custom uploaded images)
-            if not custom_image_path:
-                image_path.unlink(missing_ok=True)
+            # Cleanup temp files
             audio_path.unlink(missing_ok=True)
             frame_path.unlink(missing_ok=True)
             
@@ -172,38 +131,6 @@ class VideoGeneratorV2:
                 "error": str(e),
                 "word": word
             }
-    
-    def generate_image_only(self, word: str, definition: str, **kwargs) -> Dict:
-        """
-        Generate only the image (for preview).
-        
-        Args:
-            word: Vocabulary word
-            definition: Definition
-            **kwargs: Additional image generation parameters
-        
-        Returns:
-            Result dict with image_path and metadata
-        """
-        safe_name = "".join(c if c.isalnum() else "_" for c in word.lower())
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        image_path = config.OUTPUT_DIR / f"{safe_name}_{timestamp}_preview.png"
-        
-        try:
-            result = self.image_generator.generate_image(
-                word=word,
-                definition=definition,
-                output_path=image_path,
-                **kwargs
-            )
-            
-            if result.get('success'):
-                result['image_filename'] = image_path.name
-            
-            return result
-            
-        except Exception as e:
-            return {"success": False, "error": str(e)}
     
     def generate_audio_only(self, word: str, definition: str, example: str = "") -> Dict:
         """Generate only the audio (for preview)."""

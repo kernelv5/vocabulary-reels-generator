@@ -15,7 +15,6 @@ services:
       - "5000:5000"
     volumes:
       - ./output:/app/output
-      - ./uploads:/app/uploads
       - ./csv_database_doNotTouch.csv:/app/csv_database_doNotTouch.csv
     environment:
       # ===========================================
@@ -25,11 +24,6 @@ services:
       - JSON2VIDEO_API_KEY=${JSON2VIDEO_API_KEY:-}
       - JSON2VIDEO_TEMPLATE_ID=${JSON2VIDEO_TEMPLATE_ID:-}
       - JSON2VIDEO_ENABLED=${JSON2VIDEO_ENABLED:-false}
-      
-      # ===========================================
-      # ComfyUI - Image Generation
-      # ===========================================
-      - COMFYUI_URL=http://host.docker.internal:8188
       
       # ===========================================
       # TTS Server - Chatterbox TTS

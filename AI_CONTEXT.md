@@ -6,14 +6,14 @@
 - **Commit**: `c7dc050` (2026-02-06 09:30:55 +0800)
 - **Version**: `4.0.0`
 - **Last Commit Message**: Add version info system with homepage display
-- **Description**: Added version info display on homepage, prompt_image_guideline field for CSV
+- **Description**: Added version info display on homepage
 
 
 ## 📋 Quick Instructions for AI
 
 1. **Read this entire file** before making any changes
-2. **Check current branch**: `git branch` (currently on `version-3`)
-3. **Understand the architecture**: Flask + Docker + ComfyUI + Chatterbox TTS
+2. **Check current branch**: `git branch` (currently on `version-5`)
+3. **Understand the architecture**: Flask + Docker + Chatterbox TTS
 4. **Use VideoGeneratorV2** (not V1) - it reads from `layout_config.json`
 5. **Test changes**: Rebuild container with `docker-compose up -d --build`
 
@@ -23,13 +23,13 @@
 
 **Name**: Vocabulary Reels Generator  
 **Purpose**: Generate YouTube Shorts / Instagram Reels style vocabulary videos  
-**Tech Stack**: Python, Flask, Docker, FFmpeg, ComfyUI (Stable Diffusion), Chatterbox TTS
+**Tech Stack**: Python, Flask, Docker, FFmpeg, Chatterbox TTS
 
 ### Video Output Style
 - **Format**: 9:16 vertical (1080x1920)
 - **Duration**: 10 seconds
 - **Style**: Minimalist, educational, white background
-- **Content**: Word + Definition + AI-generated illustration + Voice
+- **Content**: Word + Definition + Example + Voice
 
 ---
 
@@ -48,22 +48,22 @@
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │              VideoGeneratorV2                        │    │
 │  │  - Reads layout_config.json                          │    │
-│  │  - Orchestrates image + audio + video                │    │
+│  │  - Orchestrates example + audio + video              │    │
 │  └─────────────────────────────────────────────────────┘    │
 │         │                    │                    │          │
 │         ▼                    ▼                    ▼          │
 │  ┌───────────┐      ┌───────────┐      ┌───────────────┐    │
-│  │ ComfyUI   │      │ TTS       │      │ VideoComposer │    │
-│  │ Client    │      │ Client    │      │ V2 (FFmpeg)   │    │
+│  │ TTS       │      │ Video     │      │ VideoComposer │    │
+│  │ Client    │      │ Preview   │      │ V2 (FFmpeg)   │    │
 │  └───────────┘      └───────────┘      └───────────────┘    │
 └─────────│───────────────────│───────────────────────────────┘
-          │                   │
-          ▼                   ▼
-    ┌───────────┐      ┌───────────┐
-    │ ComfyUI   │      │ Chatterbox│
-    │ :8188     │      │ TTS :8004 │
-    │ (Host)    │      │ (Host)    │
-    └───────────┘      └───────────┘
+      │
+      ▼
+    ┌───────────┐
+    │ Chatterbox│
+    │ TTS :8004 │
+    │ (Host)    │
+    └───────────┘
 ```
 
 ---
@@ -85,9 +85,7 @@
 |------|---------|
 | `generator_v2.py` | **Main generator** - uses layout_config.json |
 | `video_composer_v2.py` | FFmpeg video creation with per-element margins |
-| `image_generator_advanced.py` | ComfyUI image generation (supports use_layout_size) |
 | `preview_generator.py` | Layout preview image generation |
-| `comfyui_client.py` | ComfyUI API wrapper |
 | `tts_client.py` | Chatterbox TTS API wrapper |
 | `csv_reader.py` | CSV file handling utilities |
 | `layout_config.py` | Layout configuration loader |
@@ -96,8 +94,6 @@
 ### Legacy Files (Keep for reference)
 | File | Purpose |
 |------|---------|
-| `generator.py` | V1 generator (uses hardcoded config.py) |
-| `video_composer.py` | V1 video composer |
 | `json2video_client.py` | JSON2Video API client (unused) |
 
 ---
@@ -110,20 +106,14 @@
   "elements": {
     "word_title": { "y_start": 500, "y_end": 650, "left_margin": 270, "right_margin": 270 },
     "definition": { "y_start": 689, "y_end": 789, "left_margin": 180, "right_margin": 180 },
-    "image": { "y_start": 900, "y_end": 1400, "max_width": 750, "height": 500 },
+    "example": { "y_start": 900, "y_end": 1400, "left_margin": 180, "right_margin": 180 },
     "branding": { "y_start": 1450, "y_end": 1480 }
-  },
-  "image_generation": {
-    "use_layout_size": false,  // When true, uses image element dimensions
-    "width": 1024,
-    "height": 1024
   }
 }
 ```
 
 ### Docker Volume Mounts
 - `./output:/app/output` - Generated videos persist here
-- `./uploads:/app/uploads` - Uploaded images
 - `./csv_database_doNotTouch.csv:/app/csv_database_doNotTouch.csv` - Word database
 
 ### Important: V1 vs V2
@@ -143,7 +133,7 @@
 
 ### Version-3 Features
 - ✅ Per-element left/right margins
-- ✅ Layout-based image sizing option
+- ✅ Example text element support
 - ✅ Batch progress bar
 - ✅ Individual video download buttons
 - ✅ Clear vocabulary list button
@@ -152,11 +142,6 @@
 ---
 
 ## 📡 External Services
-
-### ComfyUI (Image Generation)
-- **URL**: `http://127.0.0.1:8188` (host) → `http://host.docker.internal:8188` (container)
-- **Model**: DreamShaperXL_Lightning.safetensors
-- **Sampler**: euler_ancestral, 4 steps, CFG 2
 
 ### Chatterbox TTS (Voice)
 - **URL**: `http://localhost:8004` (host) → `http://host.docker.internal:8004` (container)
@@ -205,9 +190,9 @@ docker exec -it vocab-reels-generator bash
 **Cause**: Commas in definition text  
 **Solution**: Remove commas from definitions or quote fields properly
 
-### Issue: Container can't reach ComfyUI/TTS
-**Cause**: Services not running or wrong URL  
-**Solution**: Check services are running on host, verify `host.docker.internal` URLs
+### Issue: Container can't reach TTS
+**Cause**: Service not running or wrong URL  
+**Solution**: Check service is running on host, verify `host.docker.internal` URL
 
 ---
 
@@ -254,9 +239,8 @@ async function newAction() {
 │                                 │
 │      ┌─────────────────┐        │ 900px
 │      │                 │        │
-│      │   AI Generated  │        │
-│      │   Illustration  │        │
-│      │   (750x500px)   │        │
+│      │     Example     │        │
+│      │   (bold word)   │        │
 │      │                 │        │
 │      └─────────────────┘        │ 1400px
 │                                 │
@@ -282,7 +266,7 @@ async function newAction() {
 
 - **Owner**: User (kernelv5+github@gmail.com)
 - **Repository**: vocabulary-reels-generator
-- **Current Branch**: version-3
+- **Current Branch**: version-5
 - **Container Name**: vocab-reels-generator
 - **Port**: 5000
 

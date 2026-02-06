@@ -5,10 +5,10 @@ Creates vocabulary videos with exact layout specifications
 
 import subprocess
 import json
+import re
 from pathlib import Path
 from typing import Optional
 from PIL import Image, ImageDraw, ImageFont
-import textwrap
 import sys
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -93,34 +93,6 @@ def get_font(size: int, bold: bool = False, font_family: str = None) -> ImageFon
     return ImageFont.load_default()
 
 
-def remove_background(image: Image.Image, threshold: int = 240) -> Image.Image:
-    """
-    Remove white/light background from image and make it transparent.
-    
-    Args:
-        image: Input image
-        threshold: RGB threshold for considering a pixel as "white" (0-255)
-    
-    Returns:
-        Image with transparent background
-    """
-    if image.mode != "RGBA":
-        image = image.convert("RGBA")
-    
-    data = image.getdata()
-    new_data = []
-    
-    for item in data:
-        # If pixel is mostly white, make it transparent
-        if item[0] > threshold and item[1] > threshold and item[2] > threshold:
-            new_data.append((255, 255, 255, 0))  # Transparent
-        else:
-            new_data.append(item)
-    
-    image.putdata(new_data)
-    return image
-
-
 def draw_text_centered(draw: ImageDraw.Draw, text: str, y: int,
                        font: ImageFont.FreeTypeFont, color: tuple,
                        max_width: int, center_x: int,
@@ -186,7 +158,61 @@ def draw_text_centered(draw: ImageDraw.Draw, text: str, y: int,
     return current_y
 
 
-def create_video_frame(word: str, definition: str, image_path: Optional[Path] = None,
+def draw_text_with_bold_word(draw: ImageDraw.Draw, text: str, word: str, y: int,
+                             font: ImageFont.FreeTypeFont, bold_font: ImageFont.FreeTypeFont,
+                             color: tuple, max_width: int, center_x: int,
+                             line_spacing: float = 1.2) -> int:
+    """Draw text centered with the word emphasized in bold and slightly larger size."""
+    if not text:
+        return y
+
+    word_lower = word.lower()
+    tokens = re.split(r'(\s+)', text)
+
+    def token_font(token: str) -> ImageFont.FreeTypeFont:
+        if token.isspace():
+            return font
+        normalized = re.sub(r'[^A-Za-z0-9]+', '', token).lower()
+        return bold_font if normalized == word_lower and normalized else font
+
+    def token_width(token: str) -> int:
+        token_bbox = draw.textbbox((0, 0), token, font=token_font(token))
+        return token_bbox[2] - token_bbox[0]
+
+    base_height = draw.textbbox((0, 0), "Ag", font=font)[3]
+    bold_height = draw.textbbox((0, 0), "Ag", font=bold_font)[3]
+    line_height = int(max(base_height, bold_height) * line_spacing)
+
+    lines = []
+    current_line = []
+    current_width = 0
+
+    for token in tokens:
+        width = token_width(token)
+        if current_line and current_width + width > max_width:
+            lines.append(current_line)
+            current_line = [token]
+            current_width = width
+        else:
+            current_line.append(token)
+            current_width += width
+
+    if current_line:
+        lines.append(current_line)
+
+    current_y = y
+    for line_tokens in lines:
+        line_width = sum(token_width(token) for token in line_tokens)
+        x = center_x - (line_width // 2)
+        for token in line_tokens:
+            draw.text((x, current_y), token, font=token_font(token), fill=color)
+            x += token_width(token)
+        current_y += line_height
+
+    return current_y
+
+
+def create_video_frame(word: str, definition: str, example: str = "",
                        output_path: Optional[Path] = None) -> Path:
     """
     Create video frame following layout_config.json specifications.
@@ -194,7 +220,7 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
     Args:
         word: Vocabulary word
         definition: Word definition
-        image_path: Path to illustration image (optional)
+        example: Example sentence
         output_path: Where to save frame (optional)
     
     Returns:
@@ -209,6 +235,7 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
     # Load fonts
     word_config = layout.word_title
     def_config = layout.definition
+    example_config = layout.example
     brand_config = layout.branding
     
     font_word = get_font(
@@ -225,6 +252,11 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
         brand_config['font_size'],
         bold=(brand_config['font_weight'] == 'bold')
     )
+
+    example_font_size = example_config['font_size']
+    bold_example_font_size = example_font_size + 2
+    font_example = get_font(example_font_size, bold=(example_config['font_weight'] == 'bold'))
+    font_example_bold = get_font(bold_example_font_size, bold=True)
     
     # ===========================================
     # DRAW WORD TITLE
@@ -266,53 +298,26 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
     )
     
     # ===========================================
-    # DRAW IMAGE
+    # DRAW EXAMPLE
     # ===========================================
-    if image_path and Path(image_path).exists():
-        try:
-            vocab_image = Image.open(image_path)
-            
-            # Ensure RGBA
-            if vocab_image.mode != "RGBA":
-                vocab_image = vocab_image.convert("RGBA")
-            
-            # Remove background if configured
-            if layout.image['transparent_bg']:
-                vocab_image = remove_background(vocab_image, threshold=235)
-            
-            # Resize to fit within specified dimensions
-            img_config = layout.image
-            max_width = img_config['max_width']
-            max_height = img_config['height']
-            
-            # Calculate scaling
-            scale = min(
-                max_width / vocab_image.width,
-                max_height / vocab_image.height,
-                1.0  # Don't upscale
-            )
-            
-            new_size = (
-                int(vocab_image.width * scale),
-                int(vocab_image.height * scale)
-            )
-            
-            vocab_image = vocab_image.resize(new_size, Image.Resampling.LANCZOS)
-            
-            # Position image using individual margins if available
-            img_left = img_config.get('left_margin', img_config.get('x_offset', layout.safe_left))
-            img_right = img_config.get('right_margin', layout.canvas_width - layout.safe_right)
-            img_area_width = layout.canvas_width - img_left - img_right
-            
-            # Center image within its area
-            img_x = img_left + (img_area_width - new_size[0]) // 2
-            img_y = img_config['y_start'] + (img_config['height'] - new_size[1]) // 2
-            
-            # Paste with alpha channel
-            canvas.paste(vocab_image, (img_x, img_y), vocab_image)
-            
-        except Exception as e:
-            print(f"Warning: Could not load image: {e}")
+    example_left = example_config.get('left_margin', layout.safe_left)
+    example_right = example_config.get('right_margin', layout.canvas_width - layout.safe_right)
+    example_width = layout.canvas_width - example_left - example_right
+    example_center_x = example_left + (example_width // 2)
+    example_text = example or ""
+
+    draw_text_with_bold_word(
+        draw=draw,
+        text=example_text,
+        word=word,
+        y=example_config['y_start'] + 5,
+        font=font_example,
+        bold_font=font_example_bold,
+        color=tuple(example_config['color']),
+        max_width=example_width - 40,
+        center_x=example_center_x,
+        line_spacing=example_config.get('line_spacing', 1.2)
+    )
     
     # ===========================================
     # DRAW BRANDING

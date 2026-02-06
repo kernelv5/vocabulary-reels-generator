@@ -108,50 +108,12 @@ class LayoutConfig:
         return self.get_element('definition')
     
     @property
-    def image(self) -> Dict[str, Any]:
-        return self.get_element('image')
+    def example(self) -> Dict[str, Any]:
+        return self.get_element('example')
     
     @property
     def branding(self) -> Dict[str, Any]:
         return self.get_element('branding')
-    
-    # Image generation settings
-    @property
-    def image_gen(self) -> Dict[str, Any]:
-        return self.config['image_generation']
-    
-    def get_image_prompt(self, word: str, prompt_image_guideline: str) -> str:
-        """Generate image prompt with word and prompt_image_guideline."""
-        template = self.image_gen['prompt_template']
-        return template.format(word=word, prompt_image_guideline=prompt_image_guideline)
-    
-    @property
-    def image_negative_prompt(self) -> str:
-        return self.image_gen['negative_prompt']
-    
-    @property
-    def image_width(self) -> int:
-        return self.image_gen['width']
-    
-    @property
-    def image_height(self) -> int:
-        return self.image_gen['height']
-    
-    @property
-    def image_steps(self) -> int:
-        return self.image_gen['steps']
-    
-    @property
-    def image_cfg_scale(self) -> float:
-        return self.image_gen['cfg_scale']
-    
-    @property
-    def image_seed(self) -> int:
-        return self.image_gen['seed']
-    
-    @property
-    def background_removal_enabled(self) -> bool:
-        return self.image_gen['background_removal']['enabled']
     
     # Video settings
     @property
@@ -191,10 +153,6 @@ class LayoutConfig:
         """
         if element_name in self.config['elements']:
             self.config['elements'][element_name].update(updates)
-    
-    def update_image_gen(self, updates: Dict[str, Any]):
-        """Update image generation settings."""
-        self.config['image_generation'].update(updates)
     
     def to_dict(self) -> Dict[str, Any]:
         """Return full configuration as dictionary."""

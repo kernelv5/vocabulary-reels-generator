@@ -49,15 +49,20 @@
       "y_end": 739,
       "y_start": 639
     },
-    "image": {
+    "example": {
       "alignment": "center",
-      "description": "Illustration centered in this area",
+      "color": [
+        60,
+        60,
+        60
+      ],
+      "description": "Example sentence text",
+      "font_size": 38,
+      "font_weight": "normal",
       "height": 600,
       "left_margin": 100,
-      "max_width": 880,
-      "right_margin": 167,
-      "transparent_bg": true,
-      "x_offset": 100,
+      "line_spacing": 1.4,
+      "right_margin": 100,
       "y_end": 1400,
       "y_start": 800
     },
@@ -77,24 +82,6 @@
       "y_end": 650,
       "y_start": 500
     }
-  },
-  "image_generation": {
-    "background_removal": {
-      "description": "Remove background to make transparent",
-      "enabled": true,
-      "method": "rembg"
-    },
-    "cfg_scale": 2.5,
-    "height": 1536,
-    "layout_size_description": "When true, uses elements.image dimensions (max_width x height) instead of fixed width/height below",
-    "negative_prompt": "text, words, letters, numbers, watermark, signature, complex background, gradient, pattern, dark background, colorful background, photorealistic, 3d render, busy, cluttered, neon, vibrant colors, tiny objects, small figures, distant view, far away, multiple scenes, crowded, blurry, low quality, pixelated",
-    "prompt_template": "Large centered illustration of {prompt_image_guideline}. The main subject fills most of the frame. Style: Clean bold cartoon illustration, thick outlines, muted brown and beige earth tones, simple shapes, solid pure white background, no text no letters no words, single centered subject, flat vector style, warm friendly colors, clear and sharp details, educational clipart aesthetic.",
-    "sampler": "euler_ancestral",
-    "scheduler": "normal",
-    "seed": -1,
-    "steps": 8,
-    "use_layout_size": false,
-    "width": 1536
   },
   "safe_area": {
     "description": "Content should stay within this centered area",

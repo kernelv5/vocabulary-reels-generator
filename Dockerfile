@@ -1,7 +1,7 @@
 # Vocabulary Reels Generator - Dockerfile
 # =========================================
 # Generates YouTube Shorts-style vocabulary videos
-# with AI images (ComfyUI) and AI voice (Local TTS)
+# with AI voice (Local TTS)
 
 FROM python:3.11-slim
 
@@ -39,8 +39,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create necessary directories with proper permissions
-RUN mkdir -p /app/output /app/temp /app/uploads && \
-    chmod -R 777 /app/output /app/temp /app/uploads
+RUN mkdir -p /app/output /app/temp && \
+    chmod -R 777 /app/output /app/temp
 
 # Expose port
 EXPOSE 5000
