@@ -24,7 +24,7 @@
       ],
       "description": "Channel name/branding",
       "font_size": 28,
-      "font_weight": "normal",
+      "font_weight": "bold",
       "height": 30,
       "left_margin": 270,
       "right_margin": 270,
@@ -44,22 +44,22 @@
       "font_weight": "normal",
       "height": 100,
       "left_margin": 180,
-      "line_spacing": 1.2,
+      "line_spacing": 1.6,
       "right_margin": 180,
-      "y_end": 789,
-      "y_start": 689
+      "y_end": 739,
+      "y_start": 639
     },
     "image": {
       "alignment": "center",
       "description": "Illustration centered in this area",
-      "height": 500,
-      "left_margin": 163,
-      "max_width": 750,
+      "height": 600,
+      "left_margin": 100,
+      "max_width": 880,
       "right_margin": 167,
       "transparent_bg": true,
-      "x_offset": 163,
+      "x_offset": 100,
       "y_end": 1400,
-      "y_start": 900
+      "y_start": 800
     },
     "word_title": {
       "alignment": "center",
@@ -84,17 +84,17 @@
       "enabled": true,
       "method": "rembg"
     },
-    "cfg_scale": 2,
-    "use_layout_size": false,
+    "cfg_scale": 2.5,
+    "height": 1536,
     "layout_size_description": "When true, uses elements.image dimensions (max_width x height) instead of fixed width/height below",
-    "height": 1024,
-    "negative_prompt": "text, words, letters, numbers, watermark, signature, complex background, gradient, pattern, dark background, colorful background, photorealistic, 3d render, busy, cluttered, neon, vibrant colors",
-    "prompt_template": "Simple minimalist illustration showing the concept of \"{word}\": {prompt_image_guideline}. Style: Clean simple line drawing, muted brown and beige earth tones, simple cartoon characters or objects, solid pure white background, no text no letters no words, centered composition, flat illustration style, warm colors, educational clipart aesthetic, isolated on white.",
+    "negative_prompt": "text, words, letters, numbers, watermark, signature, complex background, gradient, pattern, dark background, colorful background, photorealistic, 3d render, busy, cluttered, neon, vibrant colors, tiny objects, small figures, distant view, far away, multiple scenes, crowded, blurry, low quality, pixelated",
+    "prompt_template": "Large centered illustration of {prompt_image_guideline}. The main subject fills most of the frame. Style: Clean bold cartoon illustration, thick outlines, muted brown and beige earth tones, simple shapes, solid pure white background, no text no letters no words, single centered subject, flat vector style, warm friendly colors, clear and sharp details, educational clipart aesthetic.",
     "sampler": "euler_ancestral",
     "scheduler": "normal",
     "seed": -1,
-    "steps": 4,
-    "width": 1024
+    "steps": 8,
+    "use_layout_size": false,
+    "width": 1536
   },
   "safe_area": {
     "description": "Content should stay within this centered area",
@@ -114,7 +114,7 @@
   "version": "1.0",
   "video": {
     "codec": "libx264",
-    "duration_seconds": 10,
+    "duration_seconds": 15,
     "format": "mp4",
     "fps": 30,
     "quality": "high"

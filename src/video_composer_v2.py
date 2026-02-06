@@ -345,8 +345,20 @@ def create_video_frame(word: str, definition: str, image_path: Optional[Path] = 
     return output_path
 
 
+def get_audio_duration(audio_path: Path) -> float:
+    """Get audio duration using ffprobe."""
+    cmd = ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", str(audio_path)]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        data = json.loads(result.stdout)
+        return float(data["format"]["duration"])
+    except Exception:
+        return 10.0  # Default fallback
+
+
 def create_video_with_audio(frame_path: Path, audio_path: Path, output_path: Path,
-                            duration: Optional[int] = None) -> Path:
+                            duration: Optional[int] = None,
+                            extra_seconds: float = 1.5) -> Path:
     """
     Create video from static frame and audio using FFmpeg.
     
@@ -354,7 +366,8 @@ def create_video_with_audio(frame_path: Path, audio_path: Path, output_path: Pat
         frame_path: Path to PNG frame
         audio_path: Path to MP3 audio
         output_path: Output video path
-        duration: Video duration in seconds (None = use audio duration)
+        duration: Video duration in seconds (None = use audio duration + extra_seconds)
+        extra_seconds: Extra seconds to add after audio ends (default 3.0)
     
     Returns:
         Path to generated video
@@ -362,12 +375,15 @@ def create_video_with_audio(frame_path: Path, audio_path: Path, output_path: Pat
     layout = get_layout_config()
     
     if duration is None:
-        duration = layout.video_duration
+        # Calculate duration from audio + extra time
+        audio_duration = get_audio_duration(audio_path)
+        duration = int(audio_duration + extra_seconds)
+        print(f"  Audio duration: {audio_duration:.1f}s + {extra_seconds}s extra = {duration}s video")
     
     # Ensure output directory exists
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
-    # FFmpeg command
+    # FFmpeg command - removed -shortest to allow video to extend beyond audio
     cmd = [
         "ffmpeg",
         "-y",  # Overwrite output
@@ -375,12 +391,11 @@ def create_video_with_audio(frame_path: Path, audio_path: Path, output_path: Pat
         "-i", str(frame_path),  # Input image
         "-i", str(audio_path),  # Input audio
         "-c:v", "libx264",  # Video codec
-        "-t", str(duration),  # Duration
+        "-t", str(duration),  # Duration (audio + extra)
         "-pix_fmt", "yuv420p",  # Pixel format for compatibility
         "-c:a", "aac",  # Audio codec
         "-b:a", "192k",  # Audio bitrate
         "-r", str(layout.video_fps),  # Frame rate
-        "-shortest",  # End when shortest stream ends
         str(output_path)
     ]
     

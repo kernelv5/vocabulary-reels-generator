@@ -126,6 +126,10 @@ HTML_TEMPLATE = '''
                                 <i class="fas fa-image text-green-600"></i>
                                 <span>Image Generator</span>
                             </a>
+                            <a href="/csv-generator" class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 transition">
+                                <i class="fas fa-file-csv text-orange-600"></i>
+                                <span>CSV Generator</span>
+                            </a>
                         </div>
                     </div>
                     <div class="text-right text-sm text-purple-200">
@@ -241,11 +245,48 @@ HTML_TEMPLATE = '''
                         
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-wand-magic-sparkles mr-1"></i> Image Prompt Guideline (optional)
+                            </label>
+                            <textarea id="prompt-image-guideline" name="prompt_image_guideline" rows="2"
+                                      class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition"
+                                      placeholder="e.g., A happy person finding a treasure chest by accident, warm colors, minimalist style"></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Custom description for AI image generation (uses definition if empty)</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
                                 <i class="fas fa-image mr-1"></i> Custom Image (optional)
                             </label>
                             <input type="file" id="custom-image" name="custom_image" accept="image/*"
                                    class="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl hover:border-purple-400 transition cursor-pointer">
                             <p class="text-xs text-gray-500 mt-2">Upload your own image instead of AI-generated (PNG, JPG)</p>
+                        </div>
+                        
+                        <!-- Vocabulary Type & Revision -->
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-tag mr-1"></i> Type
+                                </label>
+                                <select id="vocabulary-type" name="vocabulary_type"
+                                        class="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                                    <option value="GeneralEnglish" selected>General English</option>
+                                    <option value="BusinessEnglish">Business English</option>
+                                    <option value="AcademicEnglish">Academic English</option>
+                                    <option value="IELTS">IELTS</option>
+                                    <option value="TOEFL">TOEFL</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Revision</label>
+                                <input type="number" id="revision" name="revision" value="1" min="1" max="99"
+                                       class="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Target</label>
+                                <input type="number" id="target-revision" name="target_revision" value="5" min="1" max="99"
+                                       class="w-full px-3 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                            </div>
                         </div>
                         
                         <div class="flex gap-3 pt-2">
@@ -310,7 +351,9 @@ HTML_TEMPLATE = '''
                         <i class="fas fa-check-circle text-green-600"></i>
                         Video Ready!
                     </h2>
-                    <video id="result-video" controls class="w-full rounded-xl mb-4 shadow-lg"></video>
+                    <div class="flex justify-center">
+                        <video id="result-video" controls class="rounded-xl mb-4 shadow-lg" style="width: 270px; height: 480px; object-fit: contain; background: #000;"></video>
+                    </div>
                     <a id="download-link" href="#" download
                        class="block w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition text-center shadow">
                         <i class="fas fa-download mr-2"></i>
@@ -616,6 +659,10 @@ HTML_TEMPLATE = '''
             formData.append('word', document.getElementById('word').value);
             formData.append('definition', document.getElementById('definition').value);
             formData.append('example', document.getElementById('example').value || '');
+            formData.append('prompt_image_guideline', document.getElementById('prompt-image-guideline').value || '');
+            formData.append('vocabulary_type', document.getElementById('vocabulary-type').value || 'GeneralEnglish');
+            formData.append('revision', document.getElementById('revision').value || '1');
+            formData.append('target_revision', document.getElementById('target-revision').value || '5');
             
             const imageFile = document.getElementById('custom-image').files[0];
             if (imageFile) {
@@ -1094,6 +1141,20 @@ LAYOUT_EDITOR_HTML = '''
                                 <span class="text-gray-400 text-sm">px</span>
                             </div>
                         </div>
+                        <div class="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-gray-200">
+                            <div class="input-group">
+                                <label>Font:</label>
+                                <input type="number" id="word-font-size" min="24" max="120" value="72" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Weight:</label>
+                                <select id="word-font-weight" class="p-2 border rounded-lg" onchange="update()">
+                                    <option value="normal">Normal</option>
+                                    <option value="bold" selected>Bold</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1123,6 +1184,24 @@ LAYOUT_EDITOR_HTML = '''
                                 <label>Right:</label>
                                 <input type="number" id="def-right" min="0" max="500" value="270" onchange="update()">
                                 <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 mt-3 pt-3 border-t border-gray-200">
+                            <div class="input-group">
+                                <label>Font:</label>
+                                <input type="number" id="def-font-size" min="16" max="72" value="36" onchange="update()">
+                                <span class="text-gray-400 text-sm">px</span>
+                            </div>
+                            <div class="input-group">
+                                <label>Wt:</label>
+                                <select id="def-font-weight" class="p-2 border rounded-lg text-sm" onchange="update()">
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="bold">Bold</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>Line:</label>
+                                <input type="number" id="def-line-spacing" min="1.0" max="3.0" step="0.1" value="1.2" onchange="update()">
                             </div>
                         </div>
                     </div>
@@ -1241,6 +1320,22 @@ LAYOUT_EDITOR_HTML = '''
             <div class="lg:col-span-1">
                 <div class="card sticky top-6">
                     <div class="section-title"><i class="fas fa-eye text-indigo-500"></i> Live Preview</div>
+                    
+                    <!-- Preview Text Controls -->
+                    <div class="mb-4 space-y-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Preview Word:</label>
+                            <input type="text" id="preview-word" value="Dissolve" 
+                                   class="w-full p-2 text-sm border rounded-lg" onchange="update()" oninput="update()" placeholder="Enter word...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1">Preview Definition:</label>
+                            <textarea id="preview-definition" rows="2" 
+                                      class="w-full p-2 text-sm border rounded-lg" onchange="update()" oninput="update()" 
+                                      placeholder="Enter definition...">To break up or stop working together as a group</textarea>
+                        </div>
+                    </div>
+                    
                     <div id="preview" class="preview-box">
                         <!-- Preview content rendered by JS -->
                     </div>
@@ -1294,12 +1389,17 @@ LAYOUT_EDITOR_HTML = '''
             document.getElementById('word-h').value = config.elements.word_title.height || 55;
             document.getElementById('word-left').value = config.elements.word_title.left_margin || 270;
             document.getElementById('word-right').value = config.elements.word_title.right_margin || 270;
+            document.getElementById('word-font-size').value = config.elements.word_title.font_size || 72;
+            document.getElementById('word-font-weight').value = config.elements.word_title.font_weight || 'bold';
             
             // Definition
             document.getElementById('def-y').value = config.elements.definition.y_start || 230;
             document.getElementById('def-h').value = config.elements.definition.height || 75;
             document.getElementById('def-left').value = config.elements.definition.left_margin || 270;
             document.getElementById('def-right').value = config.elements.definition.right_margin || 270;
+            document.getElementById('def-font-size').value = config.elements.definition.font_size || 36;
+            document.getElementById('def-font-weight').value = config.elements.definition.font_weight || 'normal';
+            document.getElementById('def-line-spacing').value = config.elements.definition.line_spacing || 1.2;
             
             // Image
             document.getElementById('img-y').value = config.elements.image.y_start || 305;
@@ -1326,13 +1426,18 @@ LAYOUT_EDITOR_HTML = '''
                     y: parseInt(document.getElementById('word-y').value),
                     h: parseInt(document.getElementById('word-h').value),
                     left: parseInt(document.getElementById('word-left').value),
-                    right: parseInt(document.getElementById('word-right').value)
+                    right: parseInt(document.getElementById('word-right').value),
+                    fontSize: parseInt(document.getElementById('word-font-size').value),
+                    fontWeight: document.getElementById('word-font-weight').value
                 },
                 def: {
                     y: parseInt(document.getElementById('def-y').value),
                     h: parseInt(document.getElementById('def-h').value),
                     left: parseInt(document.getElementById('def-left').value),
-                    right: parseInt(document.getElementById('def-right').value)
+                    right: parseInt(document.getElementById('def-right').value),
+                    fontSize: parseInt(document.getElementById('def-font-size').value),
+                    fontWeight: document.getElementById('def-font-weight').value,
+                    lineSpacing: parseFloat(document.getElementById('def-line-spacing').value)
                 },
                 img: {
                     y: parseInt(document.getElementById('img-y').value),
@@ -1351,7 +1456,9 @@ LAYOUT_EDITOR_HTML = '''
                     left: parseInt(document.getElementById('safe-left').value),
                     right: parseInt(document.getElementById('safe-right').value)
                 },
-                channelName: document.getElementById('channel-name').value
+                channelName: document.getElementById('channel-name').value,
+                previewWord: document.getElementById('preview-word').value || 'Dissolve',
+                previewDefinition: document.getElementById('preview-definition').value || 'To break up or stop working together as a group'
             };
         }
         
@@ -1391,13 +1498,13 @@ LAYOUT_EDITOR_HTML = '''
                 <div class="guide-line" style="top:${s(v.brand.y)}px;background:rgba(249,115,22,0.5);"></div>
                 
                 <!-- Word -->
-                <div class="element-preview" style="top:${s(v.word.y)}px;left:${s(v.word.left)}px;width:${s(wordWidth)}px;height:${s(v.word.h)}px;font-size:${s(72)}px;font-weight:bold;line-height:${s(v.word.h)}px;color:#232323;">
-                    Disband
+                <div class="element-preview" style="top:${s(v.word.y)}px;left:${s(v.word.left)}px;width:${s(wordWidth)}px;height:${s(v.word.h)}px;font-size:${s(v.word.fontSize)}px;font-weight:${v.word.fontWeight};line-height:${s(v.word.h)}px;color:#232323;">
+                    ${v.previewWord}
                 </div>
                 
                 <!-- Definition -->
-                <div class="element-preview" style="top:${s(v.def.y)}px;left:${s(v.def.left)}px;width:${s(defWidth)}px;height:${s(v.def.h)}px;font-size:${s(32)}px;line-height:1.3;color:#3c3c3c;overflow:hidden;">
-                    To break up or stop working together as a group...
+                <div class="element-preview" style="top:${s(v.def.y)}px;left:${s(v.def.left)}px;width:${s(defWidth)}px;height:${s(v.def.h)}px;font-size:${s(v.def.fontSize)}px;font-weight:${v.def.fontWeight};line-height:${v.def.lineSpacing};color:#3c3c3c;overflow:hidden;">
+                    ${v.previewDefinition}
                 </div>
                 
                 <!-- Image Placeholder -->
@@ -1427,6 +1534,8 @@ LAYOUT_EDITOR_HTML = '''
             config.elements.word_title.height = v.word.h;
             config.elements.word_title.left_margin = v.word.left;
             config.elements.word_title.right_margin = v.word.right;
+            config.elements.word_title.font_size = v.word.fontSize;
+            config.elements.word_title.font_weight = v.word.fontWeight;
             
             // Definition
             config.elements.definition.y_start = v.def.y;
@@ -1434,6 +1543,9 @@ LAYOUT_EDITOR_HTML = '''
             config.elements.definition.height = v.def.h;
             config.elements.definition.left_margin = v.def.left;
             config.elements.definition.right_margin = v.def.right;
+            config.elements.definition.font_size = v.def.fontSize;
+            config.elements.definition.font_weight = v.def.fontWeight;
+            config.elements.definition.line_spacing = v.def.lineSpacing;
             
             // Image
             config.elements.image.y_start = v.img.y;
@@ -1545,10 +1657,15 @@ LAYOUT_EDITOR_HTML = '''
             document.getElementById('word-h').value = 55;
             document.getElementById('word-left').value = 270;
             document.getElementById('word-right').value = 270;
+            document.getElementById('word-font-size').value = 72;
+            document.getElementById('word-font-weight').value = 'bold';
             document.getElementById('def-y').value = 230;
             document.getElementById('def-h').value = 75;
             document.getElementById('def-left').value = 270;
             document.getElementById('def-right').value = 270;
+            document.getElementById('def-font-size').value = 36;
+            document.getElementById('def-font-weight').value = 'normal';
+            document.getElementById('def-line-spacing').value = 1.2;
             document.getElementById('img-y').value = 305;
             document.getElementById('img-h').value = 225;
             document.getElementById('img-w').value = 750;
@@ -1567,11 +1684,12 @@ LAYOUT_EDITOR_HTML = '''
         }
         
         async function generatePreview() {
+            const v = getUIValues();
             try {
                 const res = await fetch('/api/preview/layout', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ word: 'Disband', definition: 'To break up or stop working together as a group', show_guides: true })
+                    body: JSON.stringify({ word: v.previewWord, definition: v.previewDefinition, show_guides: true })
                 });
                 const result = await res.json();
                 if (result.success) {
@@ -1700,6 +1818,10 @@ def api_generate():
         word = request.form.get('word')
         definition = request.form.get('definition')
         example = request.form.get('example', '')
+        prompt_image_guideline = request.form.get('prompt_image_guideline', '')
+        vocabulary_type = request.form.get('vocabulary_type', 'GeneralEnglish')
+        revision = int(request.form.get('revision', 1))
+        target_revision = int(request.form.get('target_revision', 5))
         
         # Handle custom image upload
         custom_image_path = None
@@ -1714,12 +1836,25 @@ def api_generate():
         word = data.get('word')
         definition = data.get('definition')
         example = data.get('example', '')
+        prompt_image_guideline = data.get('prompt_image_guideline', '')
+        vocabulary_type = data.get('vocabulary_type', 'GeneralEnglish')
+        revision = int(data.get('revision', 1))
+        target_revision = int(data.get('target_revision', 5))
         custom_image_path = data.get('custom_image_path')
     
     if not word or not definition:
         return jsonify({"error": "word and definition are required"}), 400
     
-    result = generator.generate_video(word, definition, example, custom_image_path)
+    result = generator.generate_video(
+        word=word, 
+        definition=definition, 
+        example=example,
+        prompt_image_guideline=prompt_image_guideline,
+        custom_image_path=custom_image_path,
+        vocabulary_type=vocabulary_type,
+        revision=revision,
+        target_revision=target_revision
+    )
     return jsonify(result)
 
 
@@ -1735,7 +1870,10 @@ def api_generate_by_index(index):
         word_data['definition'],
         word_data.get('example', ''),
         prompt_image_guideline=word_data.get('prompt_image_guideline', ''),
-        word_index=index
+        word_index=index,
+        vocabulary_type=word_data.get('vocabulary_type', 'GeneralEnglish'),
+        revision=word_data.get('revision', 1),
+        target_revision=word_data.get('target_revision', 5)
     )
     return jsonify(result)
 
@@ -2308,6 +2446,403 @@ IMAGE_GENERATOR_HTML = '''
 </html>
 '''
 
+# ============================================
+# CSV GENERATOR UI
+# ============================================
+
+CSV_GENERATOR_HTML = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Generator - Vocabulary Reels</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .btn-primary { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .btn-primary:hover { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); }
+        .word-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 20px; font-size: 14px; }
+        .word-tag .remove { cursor: pointer; color: #ea580c; }
+        .word-tag .remove:hover { color: #c2410c; }
+        textarea:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-6 shadow-lg">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="/" class="text-white/80 hover:text-white transition">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-bold flex items-center gap-3">
+                            <i class="fas fa-file-csv"></i>
+                            CSV Generator
+                        </h1>
+                        <p class="text-orange-200 text-sm mt-1">Generate vocabulary CSV from word list</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Input Section -->
+            <div class="space-y-6">
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-keyboard text-orange-600"></i>
+                        Enter Words
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Words (comma separated)
+                            </label>
+                            <textarea id="words-input" rows="4" 
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition"
+                                placeholder="love, time, life, world, people, happy, success, dream, hope, peace"></textarea>
+                            <p class="text-xs text-gray-500 mt-1">Enter words separated by commas</p>
+                        </div>
+                        
+                        <div id="word-tags" class="flex flex-wrap gap-2 min-h-[40px]"></div>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="parseWords()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition">
+                                <i class="fas fa-tags mr-2"></i>Parse Words
+                            </button>
+                            <button onclick="clearWords()" class="bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-3 px-4 rounded-xl transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-cog text-orange-600"></i>
+                        Options
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Filename</label>
+                            <input type="text" id="filename" value="vocabulary_words" 
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 transition">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-tag mr-1"></i>Vocabulary Type
+                            </label>
+                            <select id="csv-vocabulary-type" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 transition">
+                                <option value="GeneralEnglish" selected>General English</option>
+                                <option value="BusinessEnglish">Business English</option>
+                                <option value="AcademicEnglish">Academic English</option>
+                                <option value="IELTS">IELTS</option>
+                                <option value="TOEFL">TOEFL</option>
+                            </select>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Starting Revision</label>
+                                <input type="number" id="csv-revision" value="1" min="1" max="99"
+                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Target Revision</label>
+                                <input type="number" id="csv-target-revision" value="5" min="1" max="99"
+                                    class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 transition">
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="include-examples" checked class="w-5 h-5 rounded text-orange-600">
+                            <label for="include-examples" class="text-sm text-gray-700">Include example sentences</label>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="include-prompts" checked class="w-5 h-5 rounded text-orange-600">
+                            <label for="include-prompts" class="text-sm text-gray-700">Include image prompt guidelines</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="generateCSV()" id="generate-btn" 
+                    class="w-full btn-primary text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5">
+                    <i class="fas fa-magic mr-2"></i>Generate CSV
+                </button>
+            </div>
+            
+            <!-- Preview Section -->
+            <div class="space-y-6">
+                <div class="card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            <i class="fas fa-table text-orange-600"></i>
+                            CSV Preview
+                        </h2>
+                        <span id="word-count" class="text-sm text-gray-500">0 words</span>
+                    </div>
+                    
+                    <div id="csv-preview" class="bg-gray-50 rounded-xl p-4 min-h-[300px] max-h-[500px] overflow-auto">
+                        <p class="text-gray-400 text-center py-8">Enter words and click "Generate CSV" to preview</p>
+                    </div>
+                </div>
+                
+                <div id="download-section" class="hidden">
+                    <div class="card p-6">
+                        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <i class="fas fa-download text-green-600"></i>
+                            Download
+                        </h2>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="downloadCSV()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition">
+                                <i class="fas fa-file-download mr-2"></i>Download CSV
+                            </button>
+                            <button onclick="loadToDatabase()" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-xl transition">
+                                <i class="fas fa-database mr-2"></i>Load to Database
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="status-message" class="hidden card p-4">
+                    <div class="flex items-center gap-3">
+                        <div id="status-icon"></div>
+                        <span id="status-text"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let parsedWords = [];
+        let generatedCSVData = [];
+        
+        function parseWords() {
+            const input = document.getElementById('words-input').value;
+            const words = input.split(',')
+                .map(w => w.trim())
+                .filter(w => w.length > 0)
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+            
+            // Remove duplicates
+            parsedWords = [...new Set(words)];
+            renderWordTags();
+        }
+        
+        function renderWordTags() {
+            const container = document.getElementById('word-tags');
+            container.innerHTML = parsedWords.map((word, idx) => `
+                <div class="word-tag">
+                    <span>${word}</span>
+                    <span class="remove" onclick="removeWord(${idx})"><i class="fas fa-times"></i></span>
+                </div>
+            `).join('');
+            document.getElementById('word-count').textContent = `${parsedWords.length} words`;
+        }
+        
+        function removeWord(idx) {
+            parsedWords.splice(idx, 1);
+            renderWordTags();
+        }
+        
+        function clearWords() {
+            parsedWords = [];
+            document.getElementById('words-input').value = '';
+            renderWordTags();
+            document.getElementById('csv-preview').innerHTML = '<p class="text-gray-400 text-center py-8">Enter words and click "Generate CSV" to preview</p>';
+            document.getElementById('download-section').classList.add('hidden');
+        }
+        
+        async function generateCSV() {
+            if (parsedWords.length === 0) {
+                parseWords();
+                if (parsedWords.length === 0) {
+                    showStatus('error', 'Please enter some words first');
+                    return;
+                }
+            }
+            
+            const btn = document.getElementById('generate-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+            
+            showStatus('loading', 'Generating definitions and prompts...');
+            
+            try {
+                const response = await fetch('/api/csv/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        words: parsedWords,
+                        include_examples: document.getElementById('include-examples').checked,
+                        include_prompts: document.getElementById('include-prompts').checked,
+                        vocabulary_type: document.getElementById('csv-vocabulary-type').value,
+                        revision: parseInt(document.getElementById('csv-revision').value) || 1,
+                        target_revision: parseInt(document.getElementById('csv-target-revision').value) || 5
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    generatedCSVData = data.csv_data;
+                    renderCSVPreview(data.csv_data);
+                    document.getElementById('download-section').classList.remove('hidden');
+                    showStatus('success', `Generated ${data.csv_data.length} vocabulary entries`);
+                } else {
+                    showStatus('error', data.error || 'Generation failed');
+                }
+            } catch (e) {
+                showStatus('error', 'Failed to generate CSV: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic mr-2"></i>Generate CSV';
+            }
+        }
+        
+        function renderCSVPreview(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('csv-preview').innerHTML = '<p class="text-gray-400 text-center py-8">No data generated</p>';
+                return;
+            }
+            
+            let html = '<table class="w-full text-sm">';
+            html += '<thead class="bg-orange-100"><tr>';
+            html += '<th class="p-2 text-left font-semibold">Word</th>';
+            html += '<th class="p-2 text-left font-semibold">Definition</th>';
+            html += '<th class="p-2 text-left font-semibold">Example</th>';
+            html += '<th class="p-2 text-left font-semibold">Image Prompt</th>';
+            html += '<th class="p-2 text-left font-semibold">Type</th>';
+            html += '<th class="p-2 text-left font-semibold">Rev</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.forEach((row, idx) => {
+                const bgColor = idx % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                html += `<tr class="${bgColor}">`;
+                html += `<td class="p-2 font-semibold text-orange-700">${row.word}</td>`;
+                html += `<td class="p-2 text-gray-600 text-xs">${row.definition}</td>`;
+                html += `<td class="p-2 text-gray-500 text-xs italic">${row.example}</td>`;
+                html += `<td class="p-2 text-gray-500 text-xs">${row.prompt_image_guideline}</td>`;
+                html += `<td class="p-2 text-gray-500 text-xs">${row.vocabulary_type || 'GeneralEnglish'}</td>`;
+                html += `<td class="p-2 text-gray-500 text-xs">${row.revision || 1}/${row.target_revision || 5}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('csv-preview').innerHTML = html;
+        }
+        
+        function downloadCSV() {
+            if (generatedCSVData.length === 0) return;
+            
+            const filename = document.getElementById('filename').value || 'vocabulary_words';
+            
+            // Build CSV content
+            let csv = 'word,definition,example,prompt_image_guideline,vocabulary_type,revision,target_revision\\n';
+            generatedCSVData.forEach(row => {
+                csv += `${escapeCSV(row.word)},${escapeCSV(row.definition)},${escapeCSV(row.example)},${escapeCSV(row.prompt_image_guideline)},${escapeCSV(row.vocabulary_type)},${row.revision},${row.target_revision}\\n`;
+            });
+            
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showStatus('success', 'CSV file downloaded!');
+        }
+        
+        function escapeCSV(str) {
+            if (!str) return '';
+            str = String(str);
+            if (str.includes(',') || str.includes('"') || str.includes('\\n')) {
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        }
+        
+        async function loadToDatabase() {
+            if (generatedCSVData.length === 0) return;
+            
+            showStatus('loading', 'Loading words to database...');
+            
+            try {
+                const response = await fetch('/api/csv/load-to-db', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ words: generatedCSVData })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('success', `Loaded ${data.count} words to database!`);
+                } else {
+                    showStatus('error', data.error || 'Failed to load to database');
+                }
+            } catch (e) {
+                showStatus('error', 'Failed to load: ' + e.message);
+            }
+        }
+        
+        function showStatus(type, message) {
+            const container = document.getElementById('status-message');
+            const icon = document.getElementById('status-icon');
+            const text = document.getElementById('status-text');
+            
+            container.classList.remove('hidden');
+            
+            if (type === 'loading') {
+                icon.innerHTML = '<div class="w-6 h-6 border-3 border-orange-500 border-t-transparent rounded-full animate-spin"></div>';
+                text.className = 'text-orange-600';
+            } else if (type === 'success') {
+                icon.innerHTML = '<i class="fas fa-check-circle text-green-500 text-xl"></i>';
+                text.className = 'text-green-600';
+            } else {
+                icon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500 text-xl"></i>';
+                text.className = 'text-red-600';
+            }
+            
+            text.textContent = message;
+            
+            if (type !== 'loading') {
+                setTimeout(() => container.classList.add('hidden'), 5000);
+            }
+        }
+        
+        // Auto-parse on input
+        document.getElementById('words-input').addEventListener('input', function() {
+            // Debounce
+            clearTimeout(this.parseTimeout);
+            this.parseTimeout = setTimeout(parseWords, 500);
+        });
+    </script>
+</body>
+</html>
+'''
+
+@app.route('/csv-generator')
+def csv_generator():
+    """Serve the CSV generator interface."""
+    return render_template_string(CSV_GENERATOR_HTML)
+
+
 @app.route('/image-generator')
 def image_generator():
     """Serve the image generator interface."""
@@ -2558,6 +3093,310 @@ def api_generate_image_advanced():
         
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
+
+
+# ============================================
+# CSV GENERATOR API ENDPOINTS
+# ============================================
+
+# Simple vocabulary definitions for common words (fallback when no AI available)
+VOCABULARY_DATABASE = {
+    "love": {
+        "definition": "A deep affection or strong feeling of care and attachment toward someone or something",
+        "example": "I love spending time with my family",
+        "prompt": "A cute simple couple holding hands with a big red heart floating above them showing deep affection and care in minimalist cartoon style"
+    },
+    "time": {
+        "definition": "A continuous progression of events from past to future measured in seconds minutes and hours",
+        "example": "Time flies when you are having fun",
+        "prompt": "A large elegant hourglass with golden sand flowing down showing the concept of time passing in a simple educational illustration style"
+    },
+    "life": {
+        "definition": "The existence of a living being including experiences and growth from birth to death",
+        "example": "Life is full of unexpected surprises",
+        "prompt": "A beautiful tree of life with roots at bottom growing upward with leaves and birds showing the journey of growth and existence"
+    },
+    "world": {
+        "definition": "The Earth and all its inhabitants or a particular sphere of activity and experience",
+        "example": "Travel opens your eyes to the world",
+        "prompt": "A colorful Earth globe with tiny diverse people standing around it holding hands showing global unity and connection"
+    },
+    "people": {
+        "definition": "Human beings collectively or a group of individuals sharing common characteristics",
+        "example": "People from different cultures have unique traditions",
+        "prompt": "A cheerful group of diverse cartoon people of different ages and backgrounds standing together smiling"
+    },
+    "happy": {
+        "definition": "Feeling or showing pleasure contentment or joy",
+        "example": "She felt happy when she received the good news",
+        "prompt": "A smiling cartoon face with bright eyes and a big cheerful smile radiating happiness with little stars around"
+    },
+    "success": {
+        "definition": "The accomplishment of an aim or purpose achieving a desired outcome",
+        "example": "Hard work is the key to success",
+        "prompt": "A person standing on top of a mountain with arms raised in victory celebrating achievement and success"
+    },
+    "dream": {
+        "definition": "A series of images thoughts or sensations occurring in sleep or a cherished aspiration",
+        "example": "Follow your dreams and never give up",
+        "prompt": "A sleeping person with a thought bubble showing stars clouds and magical imagery representing dreams and aspirations"
+    },
+    "hope": {
+        "definition": "A feeling of expectation and desire for a certain thing to happen",
+        "example": "We hope for a better tomorrow",
+        "prompt": "A small plant sprouting from the ground with a bright sun rising in the background symbolizing hope and new beginnings"
+    },
+    "peace": {
+        "definition": "Freedom from disturbance or a state of tranquility and calm",
+        "example": "Everyone deserves to live in peace",
+        "prompt": "A white dove flying with an olive branch in a clear blue sky representing peace and harmony"
+    },
+    "family": {
+        "definition": "A group of people related by blood marriage or adoption living together",
+        "example": "Family is the most important thing in life",
+        "prompt": "A happy cartoon family with parents and children holding hands in front of a simple house"
+    },
+    "friend": {
+        "definition": "A person with whom one has a bond of mutual affection and trust",
+        "example": "A true friend is always there for you",
+        "prompt": "Two cartoon friends giving each other a high five with big smiles showing friendship and trust"
+    },
+    "work": {
+        "definition": "Activity involving mental or physical effort done to achieve a purpose or result",
+        "example": "Hard work leads to great results",
+        "prompt": "A person at a desk working on a laptop with determination showing productivity and effort"
+    },
+    "home": {
+        "definition": "The place where one lives permanently especially as a member of a family",
+        "example": "There is no place like home",
+        "prompt": "A cozy simple house with smoke coming from chimney and a warm welcoming feel"
+    },
+    "learn": {
+        "definition": "To gain knowledge or skill through study experience or being taught",
+        "example": "We learn something new every day",
+        "prompt": "A curious student reading a book with a lightbulb appearing above their head showing learning and understanding"
+    },
+    "help": {
+        "definition": "To make it easier for someone to do something by offering assistance",
+        "example": "Please help me carry these bags",
+        "prompt": "Two people where one is helping the other climb up showing assistance and support"
+    },
+    "change": {
+        "definition": "To make or become different or to transform from one state to another",
+        "example": "Change is the only constant in life",
+        "prompt": "A caterpillar transforming into a beautiful butterfly showing change and transformation"
+    },
+    "think": {
+        "definition": "To use ones mind to consider or reason about something",
+        "example": "Think before you speak",
+        "prompt": "A person with hand on chin in thinking pose with thought bubbles and question marks around"
+    },
+    "feel": {
+        "definition": "To experience an emotion or sensation",
+        "example": "I feel grateful for everything I have",
+        "prompt": "A heart with different emotion symbols around it showing various feelings and emotions"
+    },
+    "grow": {
+        "definition": "To increase in size or develop and mature over time",
+        "example": "Children grow up so fast",
+        "prompt": "A sequence showing a small seedling growing into a tall strong tree over time"
+    },
+    # Advanced/Interesting Vocabulary
+    "petrichor": {
+        "definition": "The pleasant earthy smell produced when rain falls on dry ground",
+        "example": "After the storm passed I stepped outside and enjoyed the petrichor",
+        "prompt": "Rain drops falling on dry cracked earth with visible steam or mist rising up showing the fresh smell of rain on soil"
+    },
+    "defenestration": {
+        "definition": "The act of throwing someone or something out of a window",
+        "example": "The defenestration of the old computer was quite dramatic",
+        "prompt": "A cartoon showing an object being thrown out of an open window with motion lines showing the dramatic exit"
+    },
+    "crepuscular": {
+        "definition": "Relating to or resembling twilight occurring or active during twilight",
+        "example": "Rabbits are crepuscular animals most active at dawn and dusk",
+        "prompt": "A beautiful twilight scene with a setting sun creating orange and purple sky colors with silhouettes of animals"
+    },
+    "gossamer": {
+        "definition": "A fine filmy substance of cobwebs or something extremely light delicate and insubstantial",
+        "example": "The gossamer wings of the dragonfly glistened in the sunlight",
+        "prompt": "A delicate spider web with morning dew drops glistening in soft light showing fragility and beauty"
+    },
+    "phosphenes": {
+        "definition": "The phenomenon of seeing light without light actually entering the eye such as when pressing on closed eyelids",
+        "example": "When I rubbed my tired eyes I saw colorful phosphenes",
+        "prompt": "A closed eye with colorful swirling patterns and lights appearing inside representing the visual phenomenon"
+    },
+    "pareidolia": {
+        "definition": "The tendency to perceive meaningful images in random patterns such as seeing faces in clouds",
+        "example": "Due to pareidolia the cloud looked exactly like a smiling face",
+        "prompt": "A fluffy cloud in the sky that clearly resembles a smiling human face showing pattern recognition"
+    },
+    "murmuration": {
+        "definition": "A large group of starlings flying together in coordinated swirling patterns",
+        "example": "We watched the beautiful murmuration of birds at sunset",
+        "prompt": "Thousands of small birds flying together forming beautiful swirling wave patterns against an evening sky"
+    },
+    "ferrule": {
+        "definition": "A metal ring or cap placed around a pole or stick to strengthen it or prevent splitting",
+        "example": "The ferrule on my umbrella was made of brass",
+        "prompt": "A close up of a metal ring cap at the end of an umbrella or walking stick showing the protective metal band"
+    },
+    "aglet": {
+        "definition": "The small plastic or metal sheath at the end of a shoelace that prevents fraying",
+        "example": "I need new shoelaces because the aglets have fallen off",
+        "prompt": "A close up of a shoelace end showing the small plastic tip that holds the lace together"
+    },
+    "berm": {
+        "definition": "A raised bank or flat strip of land bordering a road canal or other feature",
+        "example": "The cyclists rode along the berm beside the highway",
+        "prompt": "A raised earthen mound or grassy strip running alongside a road showing the landscape feature"
+    },
+    "serendipity": {
+        "definition": "The occurrence of events by chance in a happy or beneficial way",
+        "example": "Meeting my best friend was pure serendipity",
+        "prompt": "Two people bumping into each other by accident with happy surprised expressions and sparkles around them"
+    },
+    "ephemeral": {
+        "definition": "Lasting for a very short time fleeting and transient",
+        "example": "The beauty of cherry blossoms is ephemeral",
+        "prompt": "Cherry blossom petals falling gently from a tree with some fading away showing the temporary nature"
+    },
+    "mellifluous": {
+        "definition": "Having a smooth rich flow of sound that is pleasant to hear",
+        "example": "The singer had a mellifluous voice that captivated everyone",
+        "prompt": "Musical notes flowing smoothly like honey from a persons mouth showing sweet sounding speech or music"
+    },
+    "sonder": {
+        "definition": "The realization that each passerby has a life as vivid and complex as your own",
+        "example": "Walking through the busy street I felt a moment of sonder",
+        "prompt": "A crowd of people walking with thought bubbles showing their different complex lives and stories"
+    },
+    "limerence": {
+        "definition": "The state of being infatuated or obsessed with another person involuntarily",
+        "example": "His limerence for her made it hard to focus on anything else",
+        "prompt": "A person with heart eyes looking dreamily at another person with hearts floating around their head"
+    },
+    "wanderlust": {
+        "definition": "A strong desire to travel and explore the world",
+        "example": "Her wanderlust led her to visit over fifty countries",
+        "prompt": "A person with a backpack looking at a world map with pins and airplane routes showing travel desire"
+    },
+    "eloquent": {
+        "definition": "Fluent or persuasive in speaking or writing expressing ideas clearly and effectively",
+        "example": "The eloquent speaker captivated the entire audience",
+        "prompt": "A confident person speaking at a podium with beautiful flowing words and engaged listeners"
+    },
+    "resilient": {
+        "definition": "Able to recover quickly from difficulties or setbacks showing toughness",
+        "example": "She proved to be resilient after facing many challenges",
+        "prompt": "A small plant growing through a crack in concrete showing strength and ability to overcome obstacles"
+    },
+    "ubiquitous": {
+        "definition": "Present appearing or found everywhere at the same time",
+        "example": "Smartphones have become ubiquitous in modern society",
+        "prompt": "The same object appearing in multiple places at once showing something that is everywhere"
+    },
+    "enigma": {
+        "definition": "A person or thing that is mysterious puzzling or difficult to understand",
+        "example": "The ancient ruins remain an enigma to archaeologists",
+        "prompt": "A mysterious figure in shadow with question marks around them showing something puzzling and unknown"
+    }
+}
+
+
+def generate_vocabulary_entry(word: str) -> dict:
+    """Generate vocabulary entry for a word."""
+    word_lower = word.lower().strip()
+    
+    # Check if word exists in our database
+    if word_lower in VOCABULARY_DATABASE:
+        entry = VOCABULARY_DATABASE[word_lower]
+        return {
+            "word": word.strip().title(),
+            "definition": entry["definition"],
+            "example": entry["example"],
+            "prompt_image_guideline": entry["prompt"]
+        }
+    
+    # Generate generic entry for unknown words
+    return {
+        "word": word.strip().title(),
+        "definition": f"The meaning or concept represented by the word {word}",
+        "example": f"This is an example sentence using the word {word}",
+        "prompt_image_guideline": f"A simple minimalist illustration representing the concept of {word} in educational cartoon style for vocabulary learning"
+    }
+
+
+@app.route('/api/csv/generate', methods=['POST'])
+def api_generate_csv():
+    """Generate CSV data from a list of words."""
+    data = request.get_json() or {}
+    words = data.get('words', [])
+    include_examples = data.get('include_examples', True)
+    include_prompts = data.get('include_prompts', True)
+    vocabulary_type = data.get('vocabulary_type', 'GeneralEnglish')
+    revision = data.get('revision', 1)
+    target_revision = data.get('target_revision', 5)
+    
+    if not words:
+        return jsonify({"success": False, "error": "No words provided"})
+    
+    csv_data = []
+    for word in words:
+        entry = generate_vocabulary_entry(word)
+        
+        if not include_examples:
+            entry["example"] = ""
+        if not include_prompts:
+            entry["prompt_image_guideline"] = ""
+        
+        # Add new fields
+        entry["vocabulary_type"] = vocabulary_type
+        entry["revision"] = revision
+        entry["target_revision"] = target_revision
+        
+        csv_data.append(entry)
+    
+    return jsonify({
+        "success": True,
+        "csv_data": csv_data,
+        "count": len(csv_data)
+    })
+
+
+@app.route('/api/csv/load-to-db', methods=['POST'])
+def api_load_csv_to_db():
+    """Load generated CSV data to the vocabulary database."""
+    from src.csv_reader import add_word
+    
+    data = request.get_json() or {}
+    words = data.get('words', [])
+    
+    if not words:
+        return jsonify({"success": False, "error": "No words provided"})
+    
+    count = 0
+    for entry in words:
+        try:
+            add_word(
+                word=entry.get('word', ''),
+                definition=entry.get('definition', ''),
+                example=entry.get('example', ''),
+                prompt_image_guideline=entry.get('prompt_image_guideline', ''),
+                vocabulary_type=entry.get('vocabulary_type', 'GeneralEnglish'),
+                revision=entry.get('revision', 1),
+                target_revision=entry.get('target_revision', 5)
+            )
+            count += 1
+        except Exception as e:
+            print(f"Failed to add word {entry.get('word')}: {e}")
+    
+    return jsonify({
+        "success": True,
+        "count": count,
+        "message": f"Added {count} words to database"
+    })
 
 
 # ============================================

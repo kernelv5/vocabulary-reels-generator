@@ -25,6 +25,9 @@ COL_WORD = "word"
 COL_DEFINITION = "definition"
 COL_EXAMPLE = "example"
 COL_PROMPT_IMAGE = "prompt_image_guideline"  # Custom prompt for image generation
+COL_VOCAB_TYPE = "vocabulary_type"  # e.g., GeneralEnglish, BusinessEnglish
+COL_REVISION = "revision"  # Current revision count
+COL_TARGET_REVISION = "target_revision"  # Target revision count (e.g., 5)
 COL_STATUS = "status"
 COL_VIDEO_PATH = "video_path"
 
@@ -42,9 +45,9 @@ JSON2VIDEO_ENABLED = os.environ.get("JSON2VIDEO_ENABLED", "false").lower() == "t
 COMFYUI_URL = os.environ.get("COMFYUI_URL", "http://host.docker.internal:8188")
 COMFYUI_MODEL = os.environ.get("COMFYUI_MODEL", "DreamShaperXL_Lightning.safetensors")
 
-IMAGE_WIDTH = 1024
-IMAGE_HEIGHT = 1024
-IMAGE_STEPS = 4
+IMAGE_WIDTH = 1536
+IMAGE_HEIGHT = 1536
+IMAGE_STEPS = 6
 IMAGE_CFG = 2.0
 
 # Image prompt - Generate with WHITE background (will be removed to transparent)
@@ -67,7 +70,11 @@ TTS_MODEL = os.environ.get("TTS_MODEL", "tts-1")
 TTS_VOICE = os.environ.get("TTS_VOICE", "")
 TTS_SPEED = float(os.environ.get("TTS_SPEED", "1.0"))
 
-VOICE_SCRIPT_TEMPLATE = "{word}. {definition}."
+# Audio timing settings
+AUDIO_PAUSE_AFTER_WORD = 1.0  # seconds of silence after word
+AUDIO_PAUSE_AT_END = 3.0     # seconds of silence at end of audio
+
+VOICE_SCRIPT_TEMPLATE = "{word}. ... {definition}."
 
 # ===========================================
 # VIDEO LAYOUT - Instagram Reels Specifications
@@ -78,7 +85,7 @@ VIDEO_WIDTH = 1080
 VIDEO_HEIGHT = 1920
 VIDEO_FPS = 30
 VIDEO_FORMAT = "mp4"
-VIDEO_DURATION = 10  # seconds
+VIDEO_DURATION = 15  # seconds
 
 # Element Y-positions (from your specifications)
 LAYOUT_WORD_Y = 175        # Word title Y position

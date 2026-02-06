@@ -57,7 +57,10 @@ class VideoGeneratorV2:
                       prompt_image_guideline: str = "",
                       custom_image_path: Optional[Path] = None,
                       word_index: Optional[int] = None,
-                      image_gen_params: Optional[Dict] = None) -> Dict:
+                      image_gen_params: Optional[Dict] = None,
+                      vocabulary_type: str = "GeneralEnglish",
+                      revision: int = 1,
+                      target_revision: int = 5) -> Dict:
         """
         Generate a complete vocabulary video.
         
@@ -69,6 +72,9 @@ class VideoGeneratorV2:
             custom_image_path: Optional path to user-uploaded image
             word_index: Optional CSV index to update status
             image_gen_params: Optional dict with: seed, steps, cfg_scale, custom_prompt, etc.
+            vocabulary_type: Type of vocabulary (e.g., GeneralEnglish, BusinessEnglish)
+            revision: Current revision count
+            target_revision: Target revision count
         
         Returns:
             Dict with video_path, success status, and any errors
@@ -81,15 +87,17 @@ class VideoGeneratorV2:
             "is_processing": True
         }
         
-        # Generate safe filename
-        safe_name = "".join(c if c.isalnum() else "_" for c in word.lower())
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Generate filename: VocabularyType_Word_Revision_TargetRevision.mp4
+        safe_word = "".join(c if c.isalnum() else "_" for c in word)
+        safe_type = "".join(c if c.isalnum() else "" for c in vocabulary_type)
+        video_filename = f"{safe_type}_{safe_word}_{revision}_{target_revision}.mp4"
         
         # Paths
+        safe_name = safe_word.lower()
         image_path = config.TEMP_DIR / f"{safe_name}_image.png"
         audio_path = config.TEMP_DIR / f"{safe_name}_audio.mp3"
         frame_path = config.TEMP_DIR / f"{safe_name}_frame.png"
-        video_path = config.OUTPUT_DIR / f"{safe_name}_{timestamp}.mp4"
+        video_path = config.OUTPUT_DIR / video_filename
         
         try:
             # Step 1: Get/Generate Image

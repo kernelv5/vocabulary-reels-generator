@@ -16,6 +16,7 @@ def load_vocabulary(csv_path: Optional[Path] = None) -> pd.DataFrame:
         df = pd.DataFrame(columns=[
             config.COL_WORD, config.COL_DEFINITION, 
             config.COL_EXAMPLE, config.COL_PROMPT_IMAGE,
+            config.COL_VOCAB_TYPE, config.COL_REVISION, config.COL_TARGET_REVISION,
             config.COL_STATUS, config.COL_VIDEO_PATH
         ])
         df.to_csv(csv_path, index=False)
@@ -32,12 +33,21 @@ def load_vocabulary(csv_path: Optional[Path] = None) -> pd.DataFrame:
         df[config.COL_EXAMPLE] = ""
     if config.COL_PROMPT_IMAGE not in df.columns:
         df[config.COL_PROMPT_IMAGE] = ""
+    if config.COL_VOCAB_TYPE not in df.columns:
+        df[config.COL_VOCAB_TYPE] = "GeneralEnglish"
+    if config.COL_REVISION not in df.columns:
+        df[config.COL_REVISION] = 1
+    if config.COL_TARGET_REVISION not in df.columns:
+        df[config.COL_TARGET_REVISION] = 5
     
     # Fill NaN values
     df[config.COL_STATUS] = df[config.COL_STATUS].fillna("pending")
     df[config.COL_VIDEO_PATH] = df[config.COL_VIDEO_PATH].fillna("")
     df[config.COL_EXAMPLE] = df[config.COL_EXAMPLE].fillna("")
     df[config.COL_PROMPT_IMAGE] = df[config.COL_PROMPT_IMAGE].fillna("")
+    df[config.COL_VOCAB_TYPE] = df[config.COL_VOCAB_TYPE].fillna("GeneralEnglish")
+    df[config.COL_REVISION] = df[config.COL_REVISION].fillna(1).astype(int)
+    df[config.COL_TARGET_REVISION] = df[config.COL_TARGET_REVISION].fillna(5).astype(int)
     
     return df
 
@@ -48,7 +58,8 @@ def save_vocabulary(df: pd.DataFrame, csv_path: Optional[Path] = None):
     df.to_csv(csv_path, index=False)
 
 
-def add_word(word: str, definition: str, example: str = "", prompt_image_guideline: str = "") -> int:
+def add_word(word: str, definition: str, example: str = "", prompt_image_guideline: str = "",
+             vocabulary_type: str = "GeneralEnglish", revision: int = 1, target_revision: int = 5) -> int:
     """Add a new word to the vocabulary. Returns the index."""
     df = load_vocabulary()
     
@@ -57,6 +68,9 @@ def add_word(word: str, definition: str, example: str = "", prompt_image_guideli
         config.COL_DEFINITION: definition,
         config.COL_EXAMPLE: example,
         config.COL_PROMPT_IMAGE: prompt_image_guideline,
+        config.COL_VOCAB_TYPE: vocabulary_type,
+        config.COL_REVISION: revision,
+        config.COL_TARGET_REVISION: target_revision,
         config.COL_STATUS: "pending",
         config.COL_VIDEO_PATH: ""
     }
@@ -85,6 +99,9 @@ def get_word_by_index(index: int) -> Optional[Dict]:
         "definition": str(row[config.COL_DEFINITION]),
         "example": str(row.get(config.COL_EXAMPLE, "")),
         "prompt_image_guideline": str(row.get(config.COL_PROMPT_IMAGE, "")),
+        "vocabulary_type": str(row.get(config.COL_VOCAB_TYPE, "GeneralEnglish")),
+        "revision": int(row.get(config.COL_REVISION, 1)),
+        "target_revision": int(row.get(config.COL_TARGET_REVISION, 5)),
         "status": str(row.get(config.COL_STATUS, "pending")),
         "video_path": str(row.get(config.COL_VIDEO_PATH, ""))
     }
