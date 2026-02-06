@@ -29,8 +29,8 @@
       "left_margin": 270,
       "right_margin": 270,
       "x_offset": 270,
-      "y_end": 570,
-      "y_start": 540
+      "y_end": 1480,
+      "y_start": 1450
     },
     "definition": {
       "alignment": "center",
@@ -42,24 +42,24 @@
       "description": "Word definition text",
       "font_size": 36,
       "font_weight": "normal",
-      "height": 75,
-      "left_margin": 270,
+      "height": 100,
+      "left_margin": 180,
       "line_spacing": 1.2,
-      "right_margin": 270,
-      "y_end": 331,
-      "y_start": 256
+      "right_margin": 180,
+      "y_end": 789,
+      "y_start": 689
     },
     "image": {
       "alignment": "center",
       "description": "Illustration centered in this area",
-      "height": 225,
+      "height": 500,
       "left_margin": 163,
       "max_width": 750,
       "right_margin": 167,
       "transparent_bg": true,
       "x_offset": 163,
-      "y_end": 836,
-      "y_start": 611
+      "y_end": 1400,
+      "y_start": 900
     },
     "word_title": {
       "alignment": "center",
@@ -71,11 +71,11 @@
       "description": "Main vocabulary word",
       "font_size": 72,
       "font_weight": "bold",
-      "height": 55,
+      "height": 150,
       "left_margin": 270,
       "right_margin": 270,
-      "y_end": 221,
-      "y_start": 166
+      "y_end": 650,
+      "y_start": 500
     }
   },
   "image_generation": {
@@ -85,7 +85,7 @@
       "method": "rembg"
     },
     "cfg_scale": 2,
-    "use_layout_size": true,
+    "use_layout_size": false,
     "layout_size_description": "When true, uses elements.image dimensions (max_width x height) instead of fixed width/height below",
     "height": 1024,
     "negative_prompt": "text, words, letters, numbers, watermark, signature, complex background, gradient, pattern, dark background, colorful background, photorealistic, 3d render, busy, cluttered, neon, vibrant colors",

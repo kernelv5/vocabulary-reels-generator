@@ -16,7 +16,7 @@ services:
     volumes:
       - ./output:/app/output
       - ./uploads:/app/uploads
-      - ./vocabulary.csv:/app/vocabulary.csv
+      - ./csv_database_doNotTouch.csv:/app/csv_database_doNotTouch.csv
     environment:
       # ===========================================
       # JSON2VIDEO API (Recommended for consistent design)

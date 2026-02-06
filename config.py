@@ -17,9 +17,9 @@ for d in [OUTPUT_DIR, TEMP_DIR, UPLOADS_DIR]:
     d.mkdir(exist_ok=True)
 
 # ===========================================
-# DATA SOURCE - CSV File
+# DATA SOURCE - CSV File (Do not delete this file!)
 # ===========================================
-CSV_FILE = BASE_DIR / "vocabulary.csv"
+CSV_FILE = BASE_DIR / "csv_database_doNotTouch.csv"
 
 COL_WORD = "word"
 COL_DEFINITION = "definition"

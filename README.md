@@ -1,13 +1,13 @@
 # Vocabulary Reels Generator
 
-A Dockerized solution for generating YouTube Shorts-style vocabulary videos with AI-powered images and voice.
+A Dockerized Flask application for generating YouTube Shorts / Instagram Reels style vocabulary videos with AI-powered image generation and text-to-speech.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-Make sure these are running on your **host machine**:
+Make sure these services are running on your **host machine**:
 - **ComfyUI** at `http://127.0.0.1:8188` (with DreamShaperXL_Lightning model)
-- **TTS Server** at `http://localhost:8004`
+- **Chatterbox TTS Server** at `http://localhost:8004`
 
 ### Run with Docker
 
@@ -15,183 +15,140 @@ Make sure these are running on your **host machine**:
 # Navigate to project folder
 cd "C:\Users\admin\Documents\Claude-Document\vocabulary-reels-generator"
 
-# Build and start the container
-docker-compose up -d
+# Build and start
+docker-compose up -d --build
 
 # View logs
 docker-compose logs -f
 ```
 
 ### Access the Application
-
 - **Web UI**: http://localhost:5000
-- **API**: http://localhost:5000/api/
 
 ## 📁 Project Structure
 
 ```
 vocabulary-reels-generator/
-├── Dockerfile              # Docker image definition
-├── docker-compose.yml      # Docker Compose configuration
-├── requirements.txt        # Python dependencies
-├── config.py               # Application configuration
-├── app.py                  # Main Flask application (UI + API)
-├── vocabulary.csv          # Sample vocabulary data
+├── app.py                      # Main Flask app with Web UI + REST API
+├── config.py                   # Configuration settings
+├── layout_config.json          # Visual layout configuration (editable via UI)
+├── docker-compose.yml          # Docker orchestration
+├── Dockerfile                  # Container build instructions
+├── requirements.txt            # Python dependencies
+├── csv_database_doNotTouch.csv # Internal word database (auto-managed)
+├── csv_input/                  # Sample CSV files for import
 ├── src/
-│   ├── __init__.py
-│   ├── csv_reader.py       # CSV file handling
-│   ├── comfyui_client.py   # ComfyUI integration
-│   ├── tts_client.py       # TTS server integration
-│   ├── video_composer.py   # FFmpeg video creation
-│   └── generator.py        # Main generation pipeline
-├── output/                 # Generated videos (mounted volume)
-└── uploads/                # Uploaded images (mounted volume)
+│   ├── generator_v2.py         # Main video generation pipeline (uses layout_config.json)
+│   ├── video_composer_v2.py    # FFmpeg video creation with layout support
+│   ├── image_generator_advanced.py  # ComfyUI image generation
+│   ├── preview_generator.py    # Layout preview generation
+│   ├── comfyui_client.py       # ComfyUI API client
+│   ├── tts_client.py           # Text-to-speech client
+│   ├── csv_reader.py           # CSV file handling
+│   ├── layout_config.py        # Layout configuration loader
+│   └── layout_editor_routes.py # Layout editor API endpoints
+├── output/                     # Generated videos (Docker volume)
+├── temp/                       # Temporary files
+└── uploads/                    # Uploaded images
 ```
 
-## 🐳 Docker Commands
+## 🎨 Key Features
 
-```bash
-# Build the image
-docker-compose build
+### Layout Editor
+- Visual drag-and-drop layout configuration
+- Per-element margins (left/right) for word, definition, image, branding
+- Real-time preview of layout changes
+- All settings saved to `layout_config.json`
 
-# Start the container
-docker-compose up -d
+### Video Generation
+- AI image generation via ComfyUI (Stable Diffusion XL Lightning)
+- Text-to-speech via Chatterbox TTS
+- Background removal with rembg
+- FFmpeg video composition with audio sync
 
-# Stop the container
-docker-compose down
-
-# View logs
-docker-compose logs -f
-
-# Rebuild and restart
-docker-compose up -d --build
-
-# Enter container shell
-docker exec -it vocab-reels-generator bash
-```
+### Batch Processing
+- Import vocabulary from CSV files
+- Generate all videos with progress tracking
+- Download individual or batch videos
 
 ## 🔌 API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/health` | Health check |
-| GET | `/api/status` | Check all services |
-| GET | `/api/words` | List all words |
+| GET | `/api/status` | Check all services status |
+| GET | `/api/words` | List all vocabulary words |
 | POST | `/api/words` | Add new word |
 | DELETE | `/api/words/{index}` | Delete word |
-| POST | `/api/generate` | Generate video |
-| POST | `/api/generate/{index}` | Generate by index |
-| POST | `/api/generate/batch` | Generate all pending |
-| POST | `/api/generate/image` | Preview image only |
-| POST | `/api/generate/audio` | Preview audio only |
-| POST | `/api/upload/csv` | Upload CSV file |
+| DELETE | `/api/words/clear` | Clear all words |
+| POST | `/api/generate/{index}` | Generate video by index |
+| POST | `/api/upload/csv` | Import CSV file |
 | GET | `/api/download/{file}` | Download file |
 | GET | `/api/files` | List output files |
+| DELETE | `/api/files/clear` | Clear all output files |
+| GET | `/api/layout` | Get layout config |
+| POST | `/api/layout` | Update layout config |
+| GET | `/api/preview` | Generate layout preview |
 
-### Example: Generate Video
-
-```bash
-curl -X POST http://localhost:5000/api/generate \
-  -H "Content-Type: application/json" \
-  -d '{"word": "Serendipity", "definition": "Finding something good by chance"}'
-```
-
-### Example: Upload CSV
+## 🐳 Docker Commands
 
 ```bash
-curl -X POST http://localhost:5000/api/upload/csv \
-  -F "csv_file=@vocabulary.csv"
+# Build and start
+docker-compose up -d --build
+
+# Stop
+docker-compose down
+
+# Rebuild without cache
+docker-compose build --no-cache
+
+# View logs
+docker-compose logs -f
+
+# Enter container
+docker exec -it vocab-reels-generator bash
 ```
 
-## 🔗 n8n Integration
-
-### Webhook → Generate Video
-
-```
-[Webhook Trigger]
-       ↓
-[HTTP Request]
-  POST http://localhost:5000/api/generate
-  Body: {"word": "{{$json.word}}", "definition": "{{$json.definition}}"}
-       ↓
-[IF success]
-       ↓
-[HTTP Request]
-  GET http://localhost:5000/api/download/{{$json.video_filename}}
-```
-
-### Google Sheets → Batch Generate
-
-```
-[Schedule Trigger]
-       ↓
-[Google Sheets: Get Rows]
-       ↓
-[HTTP Request]
-  POST http://localhost:5000/api/upload/csv
-       ↓
-[HTTP Request]
-  POST http://localhost:5000/api/generate/batch
-       ↓
-[Slack: Notify completion]
-```
-
-## ⚙️ Environment Variables
-
-Configure in `docker-compose.yml`:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `COMFYUI_URL` | `http://host.docker.internal:8188` | ComfyUI server URL |
-| `TTS_URL` | `http://host.docker.internal:8004/v1/audio/speech` | TTS server URL |
-| `COMFYUI_MODEL` | `DreamShaperXL_Lightning.safetensors` | SD model name |
-| `TTS_VOICE` | `alloy` | TTS voice |
-| `TTS_SPEED` | `1.0` | Speech speed |
-| `CHANNEL_NAME` | `@YourChannel` | Branding text |
-| `API_PORT` | `5000` | Server port |
-
-## 📊 CSV Format
+## 📊 CSV Import Format
 
 ```csv
-word,definition,example,status,video_path
-Serendipity,Finding something good by chance,It was serendipity.,pending,
+word,definition,example
+Serendipity,Finding something good by chance,It was serendipity that we met.
 ```
 
-| Column | Required | Description |
-|--------|----------|-------------|
-| word | ✅ | Vocabulary word |
-| definition | ✅ | Word meaning |
-| example | ❌ | Example sentence |
-| status | Auto | pending/completed/failed |
-| video_path | Auto | Generated video path |
+**Note:** Only `word` and `definition` are required. Avoid commas within fields.
+
+## ⚙️ Configuration
+
+### layout_config.json
+Controls all visual aspects:
+- Canvas size (1080x1920 for 9:16)
+- Element positions (word, definition, image, branding)
+- Font sizes and colors
+- Image generation prompts
+- Video duration and quality
+
+### Environment Variables (docker-compose.yml)
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `COMFYUI_URL` | `http://host.docker.internal:8188` | ComfyUI server |
+| `TTS_URL` | `http://host.docker.internal:8004/v1/audio/speech` | TTS server |
 
 ## 🛠️ Troubleshooting
 
-### Container can't connect to ComfyUI/TTS
+### Container can't connect to services
+Services run on host machine. Docker uses `host.docker.internal` to reach them.
 
-The container uses `host.docker.internal` to reach services on your host machine.
+### Check service status
+Visit http://localhost:5000 and check the status indicators for ComfyUI and TTS.
 
-**Windows/Mac**: Works automatically.
-
-**Linux**: Add to docker-compose.yml:
-```yaml
-extra_hosts:
-  - "host.docker.internal:host-gateway"
+### View container logs
+```bash
+docker-compose logs -f
 ```
 
-### ComfyUI model not found
-
-Ensure the model file exists in:
-```
-C:\Users\admin\Documents\ComfyUI_windows_portable\ComfyUI\models\checkpoints\DreamShaperXL_Lightning.safetensors
-```
-
-### Video generation fails
-
-1. Check ComfyUI is running: http://127.0.0.1:8188
-2. Check TTS is running: http://localhost:8004
-3. View container logs: `docker-compose logs -f`
+## 🤖 AI Assistant Context
+See `AI_CONTEXT.md` for comprehensive project information to help AI assistants understand this codebase.
 
 ## 📜 License
-
-MIT License - Feel free to use and modify!
+MIT License

@@ -451,6 +451,10 @@ HTML_TEMPLATE = '''
                                        class="text-blue-600 hover:text-blue-800 p-2" title="Play Video">
                                         <i class="fas fa-play"></i>
                                     </a>
+                                    <a href="/api/download/${w.video_path.split('/').pop()}" 
+                                       class="text-green-600 hover:text-green-800 p-2" title="Download Video">
+                                        <i class="fas fa-download"></i>
+                                    </a>
                                 ` : ''}
                                 <button onclick="generateSingle(${w.index})" class="text-purple-600 hover:text-purple-800 p-2" title="Regenerate">
                                     <i class="fas fa-redo"></i>
