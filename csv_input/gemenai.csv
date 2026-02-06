@@ -1,8 +1,8 @@
-word,definition,example,prompt_image_guideline,vocabulary_type,revision,target_revision
-Bite,To cut or grip something with the teeth; to take a small piece using the teeth,I took a bite of the apple; the skin was crisp,A large close up of a red apple with one clear bite missing; teeth marks visible; apple centered and filling most of the frame; simple cartoon style; warm tones; no text,GeneralEnglish,1,5
-Chew,To grind food with the teeth to make it easier to swallow,Chew your food slowly so you can taste it,A large close up of a mouth with visible teeth gently chewing a piece of bread; bread centered and filling most of the frame; simple flat illustration; warm colors; no text,GeneralEnglish,1,5
-Swallow,To move food or drink from the mouth down the throat,He swallowed the pill with a sip of water,A large side view of a person drinking water with a visible throat arrow showing food moving down; simple educational diagram style; centered subject; no text,GeneralEnglish,1,5
-Sip,To drink a small amount slowly from a cup or glass,She took a sip of hot tea,A large mug with steam rising and a small drop at the rim showing a gentle sip; centered mug filling most of the frame; simple clean illustration; no text,GeneralEnglish,1,5
-Slurp,To drink or eat with a loud sucking sound,He slurped the soup from the spoon,A large bowl of soup with a spoon lifted and a curved line showing a slurping motion; bowl centered and filling most of the frame; simple cartoon style; no text,GeneralEnglish,1,5
-Gulp,To swallow a large amount quickly,She gulped the water after the run,A large water bottle tilted with a big stream of water flowing into an open mouth; subject centered and filling most of the frame; simple flat illustration; no text,GeneralEnglish,1,5
-Nibble,To take small bites repeatedly,The rabbit nibbled the carrot,A large close up of a carrot with tiny bite marks along the edge; carrot centered and filling most of the frame; simple clean illustration; no text,GeneralEnglish,1,5
+word,definition,example,vocabulary_type,revision,target_revision
+Bite,To cut or grip something with the teeth; to take a small piece using the teeth,I took a bite of the apple; the skin was crisp,GeneralEnglish,1,5
+Chew,To grind food with the teeth to make it easier to swallow,Chew your food slowly so you can taste it,GeneralEnglish,1,5
+Swallow,To move food or drink from the mouth down the throat,He swallowed the pill with a sip of water,GeneralEnglish,1,5
+Sip,To drink a small amount slowly from a cup or glass,She took a sip of hot tea,GeneralEnglish,1,5
+Slurp,To drink or eat with a loud sucking sound,He slurped the soup from the spoon,GeneralEnglish,1,5
+Gulp,To swallow a large amount quickly,She gulped the water after the run,GeneralEnglish,1,5
+Nibble,To take small bites repeatedly,The rabbit nibbled the carrot,GeneralEnglish,1,5
